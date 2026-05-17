@@ -168,6 +168,22 @@ nav {
 
 /* Tabela responsiva: scroll horizontal em mobile */
 .table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+
+/* Corpo da tabela com scroll vertical — máximo 10 linhas (10 × 46px = 460px) */
+.table-body-scroll tbody {
+  display:block;
+  max-height:460px;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.table-body-scroll thead,
+.table-body-scroll tbody tr {
+  display:table;
+  width:100%;
+  table-layout:fixed;
+}
+.table-body-scroll thead { width:calc(100% - 6px); } /* compensa largura da scrollbar */
+
 table { width:100%; border-collapse:collapse; min-width:600px; }
 thead { background:var(--bg3); }
 th {
@@ -177,6 +193,17 @@ th {
 td { padding:10px 12px; font-size:13px; border-bottom:1px solid var(--border); vertical-align:middle; }
 tr:last-child td { border-bottom:none; }
 tr:hover td { background:rgba(79,142,247,.04); }
+
+/* Campo desabilitado no modal */
+.form-input:disabled,
+.form-select:disabled {
+  opacity:.45;
+  cursor:not-allowed;
+  background:var(--bg4);
+}
+.form-group.disabled-field label {
+  opacity:.45;
+}
 
 /* =============================================
    BADGES
@@ -627,14 +654,44 @@ code.matricula-code {
    ============================================= */
 footer {
   background:var(--bg2); border-top:1px solid var(--border);
-  padding:11px 16px;
+  padding:20px 28px;
   display:flex; align-items:center; justify-content:space-between;
-  flex-wrap:wrap; gap:8px; font-size:11px; color:var(--text3);
+  flex-wrap:wrap; gap:16px;
   transition:background .3s;
 }
-footer .footer-brand { font-weight:600; color:var(--text2); }
-footer .footer-brand span { color:var(--accent); }
-footer a { color:var(--accent); text-decoration:none; }
+.footer-left {
+  display:flex; align-items:center; gap:14px; flex-shrink:0;
+}
+.footer-logo {
+  width:44px; height:44px; border-radius:12px;
+  background:rgba(79,142,247,.12); border:1px solid rgba(79,142,247,.25);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.footer-logo svg { width:24px; height:24px; color:var(--accent); }
+.footer-title {
+  font-size:15px; font-weight:700; color:var(--text);
+  letter-spacing:.01em;
+}
+.footer-sub {
+  font-size:12px; color:var(--text3); margin-top:2px;
+}
+.footer-center {
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+}
+.footer-dev-label {
+  font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--text3);
+}
+.footer-dev-name {
+  font-size:15px; font-weight:700; color:var(--accent);
+}
+.footer-right {
+  display:flex; flex-direction:column; align-items:flex-end; gap:4px;
+}
+.footer-link { color:var(--accent); text-decoration:none; font-size:12px; }
+.footer-link:hover { text-decoration:underline; }
+#footer-clock {
+  font-family:'Courier New',monospace; font-size:12px; color:var(--text2);
+}
 
 /* SCROLLBAR */
 ::-webkit-scrollbar       { width:4px; height:4px; }

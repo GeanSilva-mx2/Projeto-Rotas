@@ -202,6 +202,13 @@ function openModal() {
   document.getElementById('f-ativo').checked = true;
   document.getElementById('f-motorista').checked = false;
   document.getElementById('f-matricula').disabled = false;
+  /* Garante campos habilitados */
+  document.getElementById('f-turno').disabled    = false;
+  document.getElementById('f-endereco').disabled = false;
+  document.getElementById('group-turno').classList.remove('disabled-field');
+  document.getElementById('group-endereco').classList.remove('disabled-field');
+  const aviso = document.getElementById('aviso-motorista');
+  if (aviso) aviso.style.display = 'none';
   atualizarLabelAtivo(); atualizarLabelMotorista();
   document.getElementById('modal').classList.add('open');
 }
@@ -211,8 +218,33 @@ function atualizarLabelAtivo() {
     document.getElementById('f-ativo').checked ? 'Funcionário Ativo' : 'Funcionário Inativo';
 }
 function atualizarLabelMotorista() {
+  const isMotorista = document.getElementById('f-motorista').checked;
+
+  /* Label do toggle */
   document.getElementById('label-motorista').textContent =
-    document.getElementById('f-motorista').checked ? 'Motorista (aparece no mapa)' : 'Funcionário (não motorista)';
+    isMotorista ? 'Motorista (aparece no mapa)' : 'Funcionário (não motorista)';
+
+  /* Desabilita / habilita turno */
+  const turnoEl   = document.getElementById('f-turno');
+  const endEl     = document.getElementById('f-endereco');
+  const groupT    = document.getElementById('group-turno');
+  const groupE    = document.getElementById('group-endereco');
+  const aviso     = document.getElementById('aviso-motorista');
+
+  if (isMotorista) {
+    turnoEl.disabled = true;
+    endEl.disabled   = true;
+    turnoEl.value    = '';
+    groupT.classList.add('disabled-field');
+    groupE.classList.add('disabled-field');
+    if (aviso) aviso.style.display = 'block';
+  } else {
+    turnoEl.disabled = false;
+    endEl.disabled   = false;
+    groupT.classList.remove('disabled-field');
+    groupE.classList.remove('disabled-field');
+    if (aviso) aviso.style.display = 'none';
+  }
 }
 async function abrirEdicao(id) {
   const x = await dbGetById(id); if (!x) return;
@@ -220,13 +252,14 @@ async function abrirEdicao(id) {
   document.getElementById('edit-id').value    = x.id;
   document.getElementById('f-matricula').value= x.matricula;
   document.getElementById('f-nome').value     = x.nome;
-  document.getElementById('f-turno').value    = x.turno;
-  document.getElementById('f-endereco').value = x.endereco;
+  document.getElementById('f-turno').value    = x.turno || '';
+  document.getElementById('f-endereco').value = x.endereco || '';
   document.getElementById('f-uid').value      = x.uid || '';
   document.getElementById('f-ativo').checked     = x.ativo !== false;
   document.getElementById('f-motorista').checked = x.motorista === true;
   document.getElementById('f-matricula').disabled = true;
-  atualizarLabelAtivo(); atualizarLabelMotorista();
+  atualizarLabelAtivo();
+  atualizarLabelMotorista(); /* aplica disabled se for motorista */
   document.getElementById('modal').classList.add('open');
 }
 async function salvarFuncionario() {
@@ -238,14 +271,23 @@ async function salvarFuncionario() {
   const uid      = document.getElementById('f-uid').value.trim().toUpperCase();
   const ativo    = document.getElementById('f-ativo').checked;
   const motorista= document.getElementById('f-motorista').checked;
-  if (!mat||!nome||!turno||!end) { toast('Preencha todos os campos obrigatórios.','error'); return; }
+
+  /* Motorista não precisa de turno nem endereço */
+  if (!mat || !nome) { toast('Preencha matrícula e nome.','error'); return; }
+  if (!motorista && !turno) { toast('Selecione o turno do funcionário.','error'); return; }
+
   try {
-    const d = { matricula:mat, nome, turno, endereco:end, uid, ativo, motorista };
-    if (id) d.id = Number(id);
+    const d = {
+      matricula: mat, nome,
+      turno:    motorista ? '' : turno,
+      endereco: motorista ? '' : end,
+      uid, ativo, motorista
+    };
+    if (id) d.id = Number(id) || id;
     await dbSave(d);
-    toast(id ? 'Atualizado!' : 'Cadastrado!');
+    toast(id ? 'Atualizado com sucesso!' : 'Cadastrado com sucesso!');
     closeModal(); await renderTable(); await atualizarMapaRH(); await populaFiltroMotoristas();
-  } catch(e) { toast('Matrícula já cadastrada ou erro.','error'); }
+  } catch(e) { toast('Matrícula já cadastrada ou erro ao salvar.','error'); }
 }
 async function confirmarExclusao(id, nome) {
   if (!confirm(`Excluir "${nome}"?`)) return;
@@ -691,7 +733,10 @@ async function carregarMapaMotorista(endereco, nome) {
    MAPA RH — centrado em Santa Cruz do Sul
    ============================================= */
 async function inicializarMapaRH() {
-  mapRH = L.map('map-rh').setView([SCS_LAT, SCS_LNG], SCS_ZOOM);
+  mapRH = L.map('map-rh', {
+    minZoom: 12,   /* não deixa afastar mais que a cidade */
+    maxZoom: 16,   /* não deixa aproximar demais           */
+  }).setView([SCS_LAT, SCS_LNG], SCS_ZOOM);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
     attribution:'© <a href="https://www.openstreetmap.org/">OpenStreetMap</a>'
   }).addTo(mapRH);
@@ -706,67 +751,101 @@ async function atualizarMapaRH() {
   const rotas      = await rotaGetAll();
   const bar        = document.getElementById('mapa-status-bar');
 
+  /* Só mostra motoristas que têm rota ativa */
+  const emRota = motoristas.filter(f =>
+    rotas.some(r => r.matricula === f.matricula)
+  );
+
   bar.innerHTML = `<span>Motoristas: <strong>${motoristas.length}</strong></span>
     <span style="color:var(--border)">·</span>
     <span style="color:var(--green)">Ativos: <strong>${motoristas.filter(f=>f.ativo!==false).length}</strong></span>
     <span style="color:var(--border)">·</span>
-    <span style="color:var(--red)">Inativos: <strong>${motoristas.filter(f=>f.ativo===false).length}</strong></span>
-    <span style="color:var(--border)">·</span>
-    <span style="color:var(--cyan)">Em rota: <strong>${rotas.length}</strong></span>
-    <span style="margin-left:auto;font-size:11px;color:var(--text3)">Geocodificando...</span>`;
+    <span style="color:var(--cyan)">Em rota agora: <strong>${rotas.length}</strong></span>
+    <span style="margin-left:auto;font-size:11px;color:var(--text3)">Geocodificando rotas ativas...</span>`;
 
-  if (!motoristas.length) {
-    bar.innerHTML = `<span style="color:var(--text3)">Nenhum motorista cadastrado.</span>`;
+  if (!emRota.length) {
+    bar.innerHTML = `<span>Motoristas: <strong>${motoristas.length}</strong></span>
+      <span style="color:var(--border)">·</span>
+      <span style="color:var(--cyan)">Em rota agora: <strong>0</strong></span>
+      <span style="margin-left:auto;font-size:11px;color:var(--text3)">Nenhuma rota em andamento</span>`;
+    mapRH.setView([SCS_LAT, SCS_LNG], SCS_ZOOM);
     return;
   }
 
   const bounds = []; let ok = 0;
-  for (const f of motoristas) {
+
+  for (const f of emRota) {
     if (!f.endereco) continue;
     try {
       await new Promise(r => setTimeout(r, 350));
-      const resp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(f.endereco)}&format=json&limit=1`,{headers:{'Accept-Language':'pt-BR'}});
+      const resp = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(f.endereco)}&format=json&limit=1`,
+        { headers: { 'Accept-Language': 'pt-BR' } }
+      );
       const data = await resp.json();
-      if (!data||!data.length) continue;
-      const lat = parseFloat(data[0].lat), lon = parseFloat(data[0].lon);
-      const cor = f.ativo!==false ? '#22c55e' : '#ef4444';
+      if (!data || !data.length) continue;
+
+      const lat = parseFloat(data[0].lat);
+      const lon = parseFloat(data[0].lon);
       const rotaAtiva = rotas.find(r => r.matricula === f.matricula);
 
+      /* Ícone de ônibus SVG inline */
       const icone = L.divIcon({
-        className:'',
-        html:`<div style="position:relative;width:44px;height:44px;border-radius:50%;background:${cor};border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;font-family:'Segoe UI',sans-serif">
-          ${f.nome.split(' ').slice(0,2).map(w=>w[0]).join('')}
-          ${rotaAtiva?`<div style="position:absolute;top:-2px;right:-2px;width:13px;height:13px;border-radius:50%;background:#22d3ee;border:2px solid #fff;animation:blink 2s infinite"></div>`:''}
+        className: '',
+        html: `<div style="
+          position:relative;
+          width:46px;height:46px;
+          border-radius:50%;
+          background:#22d3ee;
+          border:3px solid #fff;
+          box-shadow:0 3px 12px rgba(0,0,0,.45);
+          display:flex;align-items:center;justify-content:center;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+               width="22" height="22">
+            <rect x="1" y="3" width="15" height="13" rx="2"/>
+            <path d="M16 8h4l3 5v3h-7V8z"/>
+            <circle cx="5.5" cy="18.5" r="2.5"/>
+            <circle cx="18.5" cy="18.5" r="2.5"/>
+          </svg>
+          <div style="
+            position:absolute;top:-4px;right:-4px;
+            width:14px;height:14px;border-radius:50%;
+            background:#22c55e;border:2px solid #fff;
+            animation:blink 1.5s infinite">
+          </div>
         </div>`,
-        iconSize:[44,44], iconAnchor:[22,22], popupAnchor:[0,-26]
+        iconSize:   [46, 46],
+        iconAnchor: [23, 23],
+        popupAnchor:[0, -28]
       });
 
-      const popup = `<div style="font-family:'Segoe UI',sans-serif;min-width:190px">
-        <div style="font-weight:700;font-size:14px;margin-bottom:3px">🚌 ${f.nome}</div>
-        <div style="font-size:11px;color:#666;margin-bottom:2px">Mat: <b>${f.matricula}</b> · ${f.turno}</div>
-        <div style="font-size:11px;color:#666;margin-bottom:5px">${f.endereco}</div>
-        <div style="display:flex;gap:5px;flex-wrap:wrap">
-          <span style="padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700;background:${f.ativo!==false?'rgba(34,197,94,.15)':'rgba(239,68,68,.15)'};color:${f.ativo!==false?'#16a34a':'#dc2626'}">${f.ativo!==false?'● Ativo':'○ Inativo'}</span>
-          ${rotaAtiva?`<span style="padding:2px 7px;border-radius:10px;font-size:11px;font-weight:700;background:rgba(34,211,238,.15);color:#0891b2">🚗 ${rotaAtiva.placa} · Rota ${rotaAtiva.rota}</span>`:''}
-        </div></div>`;
+      const popup = `<div style="font-family:'Segoe UI',sans-serif;min-width:200px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:4px">🚌 ${f.nome}</div>
+        <div style="font-size:12px;color:#666;margin-bottom:2px">Mat: <b>${f.matricula}</b> · ${f.turno}</div>
+        ${rotaAtiva ? `
+        <div style="font-size:12px;color:#666;margin-bottom:2px">Placa: <b>${rotaAtiva.placa}</b></div>
+        <div style="font-size:12px;color:#666;margin-bottom:4px">Rota: <b>${rotaAtiva.rota}</b> · ${rotaAtiva.turno}</div>
+        <div style="font-size:11px;color:#888">Início: ${rotaAtiva.hora || '—'}</div>
+        ` : ''}
+        <div style="margin-top:6px">
+          <span style="padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;background:rgba(34,211,238,.15);color:#0891b2">● Em rota</span>
+        </div>
+      </div>`;
 
-      const m = L.marker([lat,lon],{icon:icone}).addTo(mapRH).bindPopup(popup);
-      marcadoresRH.push(m); bounds.push([lat,lon]); ok++;
-    } catch(e) { console.warn('[MapRH]',e); }
+      const m = L.marker([lat, lon], { icon: icone }).addTo(mapRH).bindPopup(popup);
+      marcadoresRH.push(m);
+      bounds.push([lat, lon]);
+      ok++;
+    } catch(e) { console.warn('[MapRH]', e); }
   }
 
   bar.innerHTML = `<span>Motoristas: <strong>${motoristas.length}</strong></span>
     <span style="color:var(--border)">·</span>
-    <span style="color:var(--green)">Ativos: <strong>${motoristas.filter(f=>f.ativo!==false).length}</strong></span>
-    <span style="color:var(--border)">·</span>
-    <span style="color:var(--red)">Inativos: <strong>${motoristas.filter(f=>f.ativo===false).length}</strong></span>
-    <span style="color:var(--border)">·</span>
-    <span style="color:var(--cyan)">Em rota: <strong>${rotas.length}</strong></span>
-    <span style="margin-left:auto;font-size:11px;color:var(--text3)">${ok} localizado(s)</span>`;
+    <span style="color:var(--cyan)">Em rota agora: <strong>${rotas.length}</strong></span>
+    <span style="margin-left:auto;font-size:11px;color:var(--text3)">${ok} localizado(s) · Clique no marcador para detalhes</span>`;
 
-  /* Mantém foco em SCS se não há marcadores suficientes */
-  if (bounds.length > 1) mapRH.fitBounds(bounds,{padding:[40,40],maxZoom:14});
-  else if (bounds.length === 1) mapRH.setView(bounds[0], 14);
+  if (bounds.length > 1) mapRH.fitBounds(bounds, { padding:[60,60], maxZoom:15 });
+  else if (bounds.length === 1) mapRH.setView(bounds[0], 15);
   else mapRH.setView([SCS_LAT, SCS_LNG], SCS_ZOOM);
 }
 
@@ -832,7 +911,20 @@ async function renderHistorico() {
       <td><span class="duracao-pill">⏱ ${h.duracaoMin||0}min</span></td>
       <td style="text-align:center;font-weight:700;color:var(--cyan)">${h.leituras||0}</td>
       <td>
-        <button class="btn btn-danger btn-sm" onclick="excluirHist(${h.id})">
+        <button class="btn btn-sm" style="background:rgba(239,68,68,.12);color:#ef4444;gap:5px"
+          onclick="exportarPDF('${h.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+            <line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/>
+            <polyline points="10 9 9 9 8 9"/>
+          </svg>
+          PDF
+        </button>
+      </td>
+      <td>
+        <button class="btn btn-danger btn-sm" onclick="excluirHist('${h.id}')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:10px;height:10px">
             <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
           </svg>
@@ -851,11 +943,171 @@ function limparFiltrosHist() {
 }
 async function excluirHist(id) {
   if (!confirm('Excluir este registro?')) return;
-  await histDelete(id); toast('Removido.','info'); renderHistorico();
+  await histDelete(String(id)); toast('Removido.','info'); renderHistorico();
 }
 async function confirmarLimparHistorico() {
   if (!confirm('Limpar TODO o histórico?')) return;
   await histClear(); toast('Histórico limpo.','info'); renderHistorico();
+}
+
+/* =============================================
+   EXPORTAR RELATÓRIO PDF DE UMA ROTA
+   ============================================= */
+async function exportarPDF(id) {
+  const hist = await histGetAll();
+  const h    = hist.find(x => String(x.id) === String(id));
+  if (!h) { toast('Registro não encontrado.', 'error'); return; }
+
+  if (!window.jspdf) { toast('jsPDF não carregado. Verifique a conexão.', 'error'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a4', orientation:'portrait' });
+
+  const PW   = 210;
+  const ML   = 14;
+  const MR   = 14;
+  const CW   = PW - ML - MR;
+  const AZUL  = [37, 99, 235];
+  const CINZA = [71, 85, 105];
+  const PRETO = [15, 23, 42];
+  const VERDE = [22, 163, 74];
+  const LINHA = [226, 232, 240];
+
+  let y = 0;
+
+  /* ---- Cabeçalho azul ---- */
+  doc.setFillColor(...AZUL);
+  doc.rect(0, 0, PW, 40, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+  doc.text('Sistema de Rotas Empresariais', ML, 14);
+  doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+  doc.text('Relatório Detalhado de Rota', ML, 22);
+  doc.setFontSize(8.5);
+  doc.text(`Emitido em: ${new Date().toLocaleString('pt-BR')}`, ML, 30);
+  doc.text('Desenvolvido por Gean Diehl da Silva', PW - MR, 30, { align: 'right' });
+
+  y = 50;
+
+  /* ---- Título da rota ---- */
+  doc.setTextColor(...PRETO);
+  doc.setFontSize(15); doc.setFont('helvetica', 'bold');
+  const dataFmt = h.data ? h.data.split('-').reverse().join('/') : '—';
+  doc.text(`Rota ${h.numeroRota || '—'} — ${dataFmt}`, ML, y);
+  y += 8;
+  doc.setDrawColor(...LINHA); doc.setLineWidth(0.4);
+  doc.line(ML, y, PW - MR, y);
+  y += 8;
+
+  /* ---- Helper: caixa de info ---- */
+  const colW = CW / 2 - 3;
+  function infoBox(x, yPos, label, value, corVal) {
+    doc.setFillColor(245, 247, 250);
+    doc.roundedRect(x, yPos, colW, 15, 2, 2, 'F');
+    doc.setTextColor(...CINZA);
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+    doc.text(label.toUpperCase(), x + 4, yPos + 5.5);
+    doc.setTextColor(...(corVal || PRETO));
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+    const txt = doc.splitTextToSize(String(value || '—'), colW - 8);
+    doc.text(txt[0], x + 4, yPos + 12);
+  }
+
+  const c1 = ML;
+  const c2 = ML + colW + 6;
+  const rh = 19;
+
+  infoBox(c1, y, 'Motorista',         h.motorista || '—');
+  infoBox(c2, y, 'Matrícula',         h.matricula || '—', AZUL);
+  y += rh;
+  infoBox(c1, y, 'Placa do Veículo',  h.placa || '—', AZUL);
+  infoBox(c2, y, 'Número da Rota',    `Rota ${h.numeroRota || '—'}`, VERDE);
+  y += rh;
+  infoBox(c1, y, 'Turno',             h.tipoTurno || h.turno || '—');
+  infoBox(c2, y, 'Data da Rota',      dataFmt);
+  y += rh;
+  infoBox(c1, y, 'Horário de Início', h.inicio || '—', VERDE);
+  infoBox(c2, y, 'Horário de Fim',    h.fim    || '—', [180, 30, 30]);
+  y += rh;
+  infoBox(c1, y, 'Duração Total',     `${h.duracaoMin || 0} minutos`);
+  infoBox(c2, y, 'Identificações',    `${h.leituras || 0} crachás lidos`);
+  y += rh + 4;
+
+  /* ---- Seção: Funcionários ---- */
+  doc.setDrawColor(...LINHA); doc.line(ML, y, PW - MR, y); y += 8;
+  doc.setTextColor(...PRETO);
+  doc.setFontSize(12); doc.setFont('helvetica', 'bold');
+  doc.text('Funcionários Identificados na Rota', ML, y); y += 6;
+
+  const passageiros = (h.passageiros && h.passageiros.length > 0) ? h.passageiros : null;
+
+  if (passageiros) {
+    doc.autoTable({
+      startY: y,
+      head:   [['#','Matrícula','Nome','Turno','Horário']],
+      body:   passageiros.map((p, i) => [i + 1, p.matricula||'—', p.nome||'—', p.turno||'—', p.hora||'—']),
+      styles:          { fontSize:9, cellPadding:3 },
+      headStyles:      { fillColor:AZUL, textColor:255, fontStyle:'bold' },
+      alternateRowStyles:{ fillColor:[248,250,252] },
+      columnStyles:    { 0:{ halign:'center', cellWidth:10 } },
+      margin:          { left:ML, right:MR },
+      theme:           'grid'
+    });
+    y = doc.lastAutoTable.finalY + 10;
+  } else {
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(ML, y, CW, 24, 3, 3, 'F');
+    doc.setDrawColor(...LINHA);
+    doc.roundedRect(ML, y, CW, 24, 3, 3, 'S');
+    doc.setTextColor(...CINZA);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text(`Total de ${h.leituras || 0} crachá(s) identificado(s) durante a rota.`, ML + 5, y + 9);
+    doc.setFontSize(8);
+    doc.text('Os nomes individuais são registrados quando o sistema está com Firebase ativo e', ML + 5, y + 15);
+    doc.text('a lista de passageiros é salva durante a rota em tempo real.', ML + 5, y + 20);
+    y += 32;
+  }
+
+  /* ---- Observações ---- */
+  doc.setDrawColor(...LINHA); doc.line(ML, y, PW - MR, y); y += 8;
+  doc.setTextColor(...PRETO);
+  doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+  doc.text('Observações', ML, y); y += 5;
+  doc.setFillColor(250, 250, 252);
+  doc.roundedRect(ML, y, CW, 24, 3, 3, 'F');
+  doc.setDrawColor(...LINHA);
+  doc.roundedRect(ML, y, CW, 24, 3, 3, 'S');
+  y += 32;
+
+  /* ---- Assinaturas ---- */
+  if (y < 240) {
+    doc.setDrawColor(...CINZA);
+    doc.setLineWidth(0.3);
+    doc.line(ML, y, ML + 75, y);
+    doc.setTextColor(...CINZA);
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    doc.text('Assinatura do Motorista', ML, y + 5);
+    doc.text(h.motorista || '—', ML, y + 11);
+
+    doc.line(PW - MR - 75, y, PW - MR, y);
+    doc.text('Responsável / Supervisor', PW - MR - 75, y + 5);
+  }
+
+  /* ---- Rodapé em todas as páginas ---- */
+  const total = doc.getNumberOfPages();
+  for (let i = 1; i <= total; i++) {
+    doc.setPage(i);
+    doc.setFillColor(...AZUL);
+    doc.rect(0, 285, PW, 12, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+    doc.text('Sistema de Rotas Empresariais — Gean Diehl da Silva', ML, 292);
+    doc.text(`Pág. ${i} / ${total}`, PW - MR, 292, { align: 'right' });
+  }
+
+  const nomeArq = `relatorio-rota-${h.numeroRota || 'xx'}-${(h.data || '').replace(/-/g,'')}.pdf`;
+  doc.save(nomeArq);
+  toast(`PDF gerado: ${nomeArq}`, 'success');
 }
 
 /* =============================================
@@ -882,4 +1134,307 @@ function limparLog() {
   document.getElementById('log-list').innerHTML =
     `<div style="font-size:12px;color:var(--text3);padding:5px 0">Nenhuma leitura ainda.</div>`;
   leituraCount = 0; atualizarContadorLeituras();
+}
+
+/* =============================================
+   MODAL FILTROS RELATÓRIO PDF FUNCIONÁRIOS
+   ============================================= */
+async function abrirModalRelatorio() {
+  /* Reseta selects */
+  document.getElementById('rel-turno').value  = '';
+  document.getElementById('rel-status').value = '';
+  document.getElementById('rel-tipo').value   = '';
+  document.getElementById('rel-ordem').value  = 'nome';
+
+  document.getElementById('modal-relatorio').classList.add('open');
+  await atualizarPreviewRelatorio();
+
+  /* Atualiza prévia ao mudar qualquer filtro */
+  ['rel-turno','rel-status','rel-tipo','rel-ordem'].forEach(id => {
+    document.getElementById(id).onchange = atualizarPreviewRelatorio;
+  });
+}
+
+function fecharModalRelatorio() {
+  document.getElementById('modal-relatorio').classList.remove('open');
+}
+
+async function atualizarPreviewRelatorio() {
+  const todos   = await dbGetAll();
+  const filtrado = aplicarFiltrosRelatorio(todos);
+  const turno   = document.getElementById('rel-turno').value;
+  const status  = document.getElementById('rel-status').value;
+  const tipo    = document.getElementById('rel-tipo').value;
+
+  const linhas = [
+    `📋 <strong>${filtrado.length}</strong> de ${todos.length} funcionário(s) serão incluídos`,
+    turno  ? `🕐 Turno: <strong>${turno}</strong>`                                        : '🕐 Turno: <strong>Todos</strong>',
+    status ? `👤 Status: <strong>${status === 'ativo' ? 'Apenas Ativos' : 'Apenas Inativos'}</strong>` : '👤 Status: <strong>Ativos e Inativos</strong>',
+    tipo   ? `🚌 Cargo: <strong>${tipo === 'motorista' ? 'Apenas Motoristas' : 'Apenas Funcionários'}</strong>` : '🚌 Cargo: <strong>Motoristas e Funcionários</strong>',
+  ];
+
+  document.getElementById('rel-preview').innerHTML = linhas.join('<br>');
+}
+
+function aplicarFiltrosRelatorio(todos) {
+  const turno  = document.getElementById('rel-turno').value;
+  const status = document.getElementById('rel-status').value;
+  const tipo   = document.getElementById('rel-tipo').value;
+  const ordem  = document.getElementById('rel-ordem').value;
+
+  let lista = todos.filter(f => {
+    const t = !turno  || f.turno === turno;
+    const s = !status || (status === 'ativo' ? f.ativo !== false : f.ativo === false);
+    const p = !tipo   || (tipo === 'motorista' ? f.motorista === true : f.motorista !== true);
+    return t && s && p;
+  });
+
+  /* Ordenação */
+  lista = lista.sort((a, b) => {
+    if (ordem === 'matricula') return (a.matricula||'').localeCompare(b.matricula||'');
+    if (ordem === 'turno')     return (a.turno||'').localeCompare(b.turno||'');
+    if (ordem === 'tipo')      return (b.motorista ? 1 : 0) - (a.motorista ? 1 : 0);
+    return (a.nome||'').localeCompare(b.nome||''); /* padrão: nome */
+  });
+
+  return lista;
+}
+
+async function confirmarRelatorio() {
+  const todos    = await dbGetAll();
+  const filtrado = aplicarFiltrosRelatorio(todos);
+  if (!filtrado.length) {
+    toast('Nenhum funcionário corresponde aos filtros selecionados.', 'warning');
+    return;
+  }
+  fecharModalRelatorio();
+  await exportarPDFFuncionarios(filtrado);
+}
+
+/* =============================================
+   RELATÓRIO PDF — TODOS OS FUNCIONÁRIOS
+   ============================================= */
+async function exportarPDFFuncionarios(lista) {
+  /* Se chamado sem argumento (compatibilidade), usa todos sem filtro */
+  if (!lista) {
+    const todos = await dbGetAll();
+    lista = todos;
+  }
+  if (!lista.length) { toast('Nenhum funcionário para exportar.', 'info'); return; }
+  if (!window.jspdf)  { toast('jsPDF não carregado.', 'error'); return; }
+
+  const { jsPDF }  = window.jspdf;
+  const doc        = new jsPDF({ unit:'mm', format:'a4', orientation:'landscape' });
+
+  const PW    = 297;  /* A4 landscape */
+  const ML    = 12;
+  const MR    = 12;
+  const AZUL  = [37, 99, 235];
+  const CINZA = [71, 85, 105];
+  const PRETO = [15, 23, 42];
+  const LINHA = [226, 232, 240];
+  const VERDE = [22, 163, 74];
+  const VERM  = [220, 38, 38];
+  const CYAN  = [8, 145, 178];
+
+  /* ---- Cabeçalho ---- */
+  doc.setFillColor(...AZUL);
+  doc.rect(0, 0, PW, 36, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+  doc.text('Sistema de Rotas Empresariais', ML, 13);
+  doc.setFontSize(11); doc.setFont('helvetica', 'normal');
+  doc.text('Relatório Geral de Funcionários', ML, 21);
+  doc.setFontSize(8.5);
+  doc.text(`Emitido em: ${new Date().toLocaleString('pt-BR')}`, ML, 29);
+  doc.text('Desenvolvido por Gean Diehl da Silva', PW - MR, 29, { align: 'right' });
+
+  /* ---- Resumo por tipo ---- */
+  const motoristas  = lista.filter(f => f.motorista === true);
+  const funcs       = lista.filter(f => f.motorista !== true);
+  const ativos      = lista.filter(f => f.ativo !== false);
+  const inativos    = lista.filter(f => f.ativo === false);
+
+  let y = 44;
+
+  /* Subtítulo com filtros aplicados */
+  const turnoFiltro  = document.getElementById('rel-turno')  ? document.getElementById('rel-turno').value  : '';
+  const statusFiltro = document.getElementById('rel-status') ? document.getElementById('rel-status').value : '';
+  const tipoFiltro   = document.getElementById('rel-tipo')   ? document.getElementById('rel-tipo').value   : '';
+
+  const filtrosTexto = [
+    turnoFiltro  ? turnoFiltro : null,
+    statusFiltro ? (statusFiltro === 'ativo' ? 'Ativos' : 'Inativos') : null,
+    tipoFiltro   ? (tipoFiltro === 'motorista' ? 'Motoristas' : 'Funcionários') : null,
+  ].filter(Boolean);
+
+  if (filtrosTexto.length > 0) {
+    doc.setFillColor(240, 245, 255);
+    doc.roundedRect(ML, y - 8, PW - ML - MR, 9, 2, 2, 'F');
+    doc.setTextColor(...AZUL);
+    doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+    doc.text(`Filtros aplicados: ${filtrosTexto.join(' · ')}`, ML + 3, y - 2);
+    y += 4;
+  }
+
+  /* Cards de resumo */
+  const cards = [
+    { label:'No relatório', valor: lista.length,       cor: AZUL  },
+    { label:'Ativos',       valor: ativos.length,      cor: VERDE },
+    { label:'Inativos',     valor: inativos.length,    cor: VERM  },
+    { label:'Motoristas',   valor: motoristas.length,  cor: CYAN  },
+    { label:'Funcionários', valor: funcs.length,        cor: CINZA },
+  ];
+
+  const cw = 48;
+  cards.forEach((c, i) => {
+    const cx = ML + i * (cw + 4);
+    doc.setFillColor(245, 247, 250);
+    doc.roundedRect(cx, y, cw, 16, 2, 2, 'F');
+    doc.setTextColor(...CINZA);
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+    doc.text(c.label.toUpperCase(), cx + 4, y + 6);
+    doc.setTextColor(...c.cor);
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+    doc.text(String(c.valor), cx + 4, y + 13);
+  });
+
+  y += 24;
+
+  /* ---- Conta viagens por funcionário cruzando com histórico ---- */
+  const historico = await histGetAll();
+
+  /*
+   * Cada rota no histórico tem h.leituras (contagem total) mas não
+   * tem a lista nominal. Usamos a matrícula do campo h.matricula
+   * (motorista) para contar quantas rotas o MOTORISTA fez, e para
+   * funcionários não-motoristas somamos as leituras de passageiros
+   * salvas em h.passageiros (quando disponível via Firebase).
+   * Se h.passageiros não existir, mostramos o total de viagens como
+   * motorista (rotas operadas).
+   */
+  function contarViagens(funcionario) {
+    if (funcionario.motorista) {
+      /* Motorista: quantas rotas ele operou */
+      return historico.filter(h => h.matricula === funcionario.matricula).length;
+    } else {
+      /* Funcionário: quantas vezes apareceu em passageiros */
+      let total = 0;
+      for (const h of historico) {
+        if (Array.isArray(h.passageiros)) {
+          total += h.passageiros.filter(p => p.matricula === funcionario.matricula).length;
+        }
+      }
+      return total;
+    }
+  }
+
+  /* ---- Tabela principal ---- */
+  doc.setTextColor(...PRETO);
+  doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+  doc.text('Lista de Funcionários', ML, y);
+  y += 4;
+
+  /* Lista já foi ordenada em aplicarFiltrosRelatorio — usa diretamente */
+  const ordenados = lista;
+
+  doc.autoTable({
+    startY: y,
+    head: [[
+      'Matrícula', 'Nome', 'Cargo', 'Turno', 'Status', 'Viagens', 'UID Crachá', 'Endereço'
+    ]],
+    body: ordenados.map(f => {
+      const viagens = contarViagens(f);
+      return [
+        f.matricula || '—',
+        f.nome      || '—',
+        f.motorista ? 'Motorista' : 'Funcionário',
+        f.turno     || '—',
+        f.ativo !== false ? 'Ativo' : 'Inativo',
+        viagens > 0 ? String(viagens) : '0',
+        f.uid       || '—',
+        f.endereco  || '—'
+      ];
+    }),
+    styles:      { fontSize:8.5, cellPadding:3, overflow:'ellipsize' },
+    headStyles:  { fillColor:AZUL, textColor:255, fontStyle:'bold', fontSize:8 },
+    alternateRowStyles: { fillColor:[248, 250, 252] },
+    columnStyles: {
+      0: { cellWidth:20 },
+      1: { cellWidth:40 },
+      2: { cellWidth:24, fontStyle:'bold' },
+      3: { cellWidth:22 },
+      4: { cellWidth:16 },
+      5: { cellWidth:20, halign:'center', fontStyle:'bold' },
+      6: { cellWidth:26 },
+      7: { cellWidth:'auto' }
+    },
+    didParseCell(data) {
+      if (data.section === 'body') {
+        const row = ordenados[data.row.index];
+        if (data.column.index === 2) {
+          data.cell.styles.textColor = row && row.motorista ? CYAN : CINZA;
+        }
+        if (data.column.index === 4) {
+          data.cell.styles.textColor = (row && row.ativo !== false) ? VERDE : VERM;
+        }
+        if (data.column.index === 5) {
+          const v = parseInt(data.cell.text[0]) || 0;
+          data.cell.styles.textColor = v > 0 ? VERDE : CINZA;
+        }
+      }
+    },
+    margin: { left:ML, right:MR },
+    theme:  'grid'
+  });
+
+  y = doc.lastAutoTable.finalY + 10;
+
+  /* ---- Seção motoristas detalhada (só aparece se há motoristas no filtro) ---- */
+  if (motoristas.length > 0 && y < 170) {
+    doc.setDrawColor(...LINHA); doc.setLineWidth(0.3);
+    doc.line(ML, y, PW - MR, y); y += 7;
+    doc.setTextColor(...PRETO);
+    doc.setFontSize(11); doc.setFont('helvetica', 'bold');
+    doc.text(`Motoristas (${motoristas.length})`, ML, y); y += 4;
+
+    doc.autoTable({
+      startY: y,
+      head:   [['Matrícula','Nome','UID Crachá','Status']],
+      body:   motoristas.map(f => [
+        f.matricula || '—',
+        f.nome      || '—',
+        f.uid       || '— não vinculado',
+        f.ativo !== false ? 'Ativo' : 'Inativo'
+      ]),
+      styles:      { fontSize:9, cellPadding:3 },
+      headStyles:  { fillColor:CYAN, textColor:255, fontStyle:'bold' },
+      alternateRowStyles: { fillColor:[248,252,254] },
+      didParseCell(data) {
+        if (data.section === 'body' && data.column.index === 3) {
+          const row = motoristas[data.row.index];
+          data.cell.styles.textColor = (row && row.ativo !== false) ? VERDE : VERM;
+          data.cell.styles.fontStyle = 'bold';
+        }
+      },
+      margin: { left:ML, right:MR },
+      theme:  'grid'
+    });
+  }
+
+  /* ---- Rodapé em todas as páginas ---- */
+  const total = doc.getNumberOfPages();
+  for (let i = 1; i <= total; i++) {
+    doc.setPage(i);
+    doc.setFillColor(...AZUL);
+    doc.rect(0, 198, PW, 12, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7.5); doc.setFont('helvetica', 'normal');
+    doc.text('Sistema de Rotas Empresariais — Gean Diehl da Silva', ML, 205);
+    doc.text(`Pág. ${i} / ${total}`, PW - MR, 205, { align:'right' });
+  }
+
+  const data = new Date().toISOString().slice(0,10).replace(/-/g,'');
+  doc.save(`relatorio-funcionarios-${data}.pdf`);
+  toast('Relatório de funcionários exportado!', 'success');
 }

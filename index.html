@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>Sistema de Transporte Escolar</title>
+  <title>Sistema de Rotas</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <link rel="stylesheet" href="style.css"/>
 </head>
@@ -17,7 +17,7 @@
       <path d="M16 8h4l3 5v3h-7V8z"/>
       <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
     </svg>
-    TransporteEscolar
+    Sistema de Rotas
   </div>
   <div class="nav-tabs">
     <button class="nav-tab active" id="tab-rh" onclick="showPage('rh',this)">
@@ -63,12 +63,23 @@
       <div class="page-title">Gestão de Funcionários</div>
       <div class="page-subtitle">Cadastro e controle de funcionários e motoristas</div>
     </div>
-    <button class="btn btn-primary" onclick="openModal()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-      </svg>
-      Novo
-    </button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="abrirModalRelatorio()" style="gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/>
+          <line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        Relatório PDF
+      </button>
+      <button class="btn btn-primary" onclick="openModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Novo Funcionário
+      </button>
+    </div>
   </div>
 
   <div class="stats">
@@ -109,7 +120,7 @@
       </select>
     </div>
     <div class="table-scroll">
-      <table>
+      <table class="table-body-scroll">
         <thead>
           <tr>
             <th>Matrícula</th><th>Nome</th><th>Tipo</th><th>Turno</th>
@@ -132,9 +143,7 @@
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <div class="mapa-rh-legend">
-          <span><span class="legend-dot" style="background:#22c55e"></span>Ativo</span>
-          <span><span class="legend-dot" style="background:#ef4444"></span>Inativo</span>
-          <span><span class="legend-dot" style="background:#22d3ee"></span>Em rota</span>
+          <span><span class="legend-dot" style="background:#22d3ee;animation:blink 1.5s infinite;display:inline-block"></span>Em rota agora</span>
         </div>
         <button class="btn btn-ghost btn-sm" onclick="atualizarMapaRH()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -519,12 +528,12 @@
 
   <div class="hist-table-container">
     <div class="table-scroll">
-      <table style="min-width:700px">
+      <table style="min-width:760px">
         <thead>
           <tr>
             <th>Data</th><th>Motorista</th><th>Placa</th>
             <th>Rota</th><th>Turno</th><th>Início</th>
-            <th>Fim</th><th>Duração</th><th>Leituras</th><th></th>
+            <th>Fim</th><th>Duração</th><th>Leituras</th><th>Relatório</th><th></th>
           </tr>
         </thead>
         <tbody id="hist-body"></tbody>
@@ -546,8 +555,8 @@
         <label class="form-label">Matrícula *</label>
         <input class="form-input" id="f-matricula" placeholder="Ex: 0001" maxlength="20">
       </div>
-      <div class="form-group">
-        <label class="form-label">Turno *</label>
+      <div class="form-group" id="group-turno">
+        <label class="form-label" id="label-turno-field">Turno *</label>
         <select class="form-select" id="f-turno">
           <option value="">Selecione...</option>
           <option value="1º Turno">1º Turno</option>
@@ -561,9 +570,13 @@
       <label class="form-label">Nome completo *</label>
       <input class="form-input" id="f-nome" placeholder="Nome do funcionário">
     </div>
-    <div class="form-group">
-      <label class="form-label">Endereço completo *</label>
+    <div class="form-group" id="group-endereco">
+      <label class="form-label" id="label-endereco-field">Endereço completo *</label>
       <input class="form-input" id="f-endereco" placeholder="Rua, número, bairro, cidade, RS">
+    </div>
+    <!-- Aviso motorista: turno e endereço não necessários -->
+    <div id="aviso-motorista" style="display:none;background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.25);border-radius:8px;padding:10px 13px;font-size:12px;color:var(--cyan);margin-bottom:14px;display:none">
+      ℹ️ Motoristas não precisam de turno nem endereço — esses campos são ignorados no cadastro de motorista.
     </div>
     <div class="form-group">
       <label class="form-label">UID do Crachá NFC <span style="font-weight:400;text-transform:none;color:var(--text3)">(ex: C8:A2:07:B9)</span></label>
@@ -625,6 +638,85 @@
   </div>
 </div>
 
+<!-- ==================================================
+     MODAL FILTROS RELATÓRIO PDF FUNCIONÁRIOS
+     ================================================== -->
+<div class="modal-overlay" id="modal-relatorio">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           style="width:18px;height:18px;vertical-align:-3px;margin-right:6px;color:var(--accent)">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      Filtros do Relatório
+    </div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:18px">
+      Selecione o que deseja incluir no PDF. Deixe em branco para incluir todos.
+    </p>
+
+    <div class="form-group">
+      <label class="form-label">Turno</label>
+      <select class="form-select" id="rel-turno">
+        <option value="">Todos os turnos</option>
+        <option value="1º Turno">Apenas 1º Turno</option>
+        <option value="Turno Normal">Apenas Turno Normal</option>
+        <option value="2º Turno">Apenas 2º Turno</option>
+        <option value="3º Turno">Apenas 3º Turno</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      <select class="form-select" id="rel-status">
+        <option value="">Ativos e Inativos</option>
+        <option value="ativo">Apenas Ativos</option>
+        <option value="inativo">Apenas Inativos</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Tipo / Cargo</label>
+      <select class="form-select" id="rel-tipo">
+        <option value="">Motoristas e Funcionários</option>
+        <option value="motorista">Apenas Motoristas</option>
+        <option value="funcionario">Apenas Funcionários</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Ordenar por</label>
+      <select class="form-select" id="rel-ordem">
+        <option value="nome">Nome (A-Z)</option>
+        <option value="matricula">Matrícula</option>
+        <option value="turno">Turno</option>
+        <option value="tipo">Cargo (Motoristas primeiro)</option>
+      </select>
+    </div>
+
+    <!-- Prévia da seleção -->
+    <div id="rel-preview" style="
+      background:var(--bg3);border:1px solid var(--border);
+      border-radius:8px;padding:11px 14px;margin-bottom:4px;
+      font-size:12px;color:var(--text2);line-height:1.8">
+      Carregando prévia...
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModalRelatorio()">Cancelar</button>
+      <button class="btn btn-primary" onclick="confirmarRelatorio()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+        </svg>
+        Gerar PDF
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast">
   <svg id="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
@@ -633,15 +725,35 @@
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-brand">🚌 <span>TransporteEscolar</span> v5</div>
-  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-    <span>Dev: <strong style="color:var(--text2)">Equipe de TI</strong></span>
-    <span style="color:var(--border)">·</span>
-    <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a>
-    <span style="color:var(--border)">·</span>
-    <span id="footer-clock" style="font-family:'Courier New',monospace;color:var(--text2)"></span>
+  <div class="footer-left">
+    <div class="footer-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="1" y="3" width="15" height="13" rx="2"/>
+        <path d="M16 8h4l3 5v3h-7V8z"/>
+        <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+      </svg>
+    </div>
+    <div>
+      <div class="footer-title">Sistema de Rotas Empresariais</div>
+      <div class="footer-sub">Gestão inteligente de transporte escolar e rotas</div>
+    </div>
+  </div>
+  <div class="footer-center">
+    <div class="footer-dev-label">Desenvolvido por</div>
+    <div class="footer-dev-name">Gean Diehl da Silva</div>
+  </div>
+  <div class="footer-right">
+    <a href="https://www.openstreetmap.org" target="_blank" class="footer-link">OpenStreetMap</a>
+    <span id="footer-clock"></span>
   </div>
 </footer>
+
+<!-- jsPDF para exportação de relatório PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="db.js"></script>
