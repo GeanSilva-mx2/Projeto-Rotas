@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <title>Sistema de Transporte Escolar</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="1" y="3" width="15" height="13" rx="2"/>
+      <path d="M16 8h4l3 5v3h-7V8z"/>
+      <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+    </svg>
+    TransporteEscolar
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tab-rh" onclick="showPage('rh',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      Painel RH
+    </button>
+    <button class="nav-tab" id="tab-motorista" onclick="showPage('motorista',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="1" y="3" width="15" height="13" rx="2"/>
+        <path d="M16 8h4l3 5v3h-7V8z"/>
+        <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+      </svg>
+      Motorista
+    </button>
+    <button class="nav-tab" id="tab-historico" onclick="showPage('historico',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      Histórico
+    </button>
+  </div>
+  <div class="theme-toggle" onclick="toggleTheme()">
+    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="5"/>
+      <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+      <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+    </svg>
+    <span id="theme-label">Claro</span>
+  </div>
+</nav>
+
+<!-- ==================================================
+     PAINEL RH
+     ================================================== -->
+<div class="page active" id="page-rh">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Gestão de Funcionários</div>
+      <div class="page-subtitle">Cadastro e controle de funcionários e motoristas</div>
+    </div>
+    <button class="btn btn-primary" onclick="openModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Novo
+    </button>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value accent" id="stat-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">Ativos</div><div class="stat-value green" id="stat-ativos">0</div></div>
+    <div class="stat-card"><div class="stat-label">Inativos</div><div class="stat-value red" id="stat-inativos">0</div></div>
+    <div class="stat-card"><div class="stat-label">Motoristas</div><div class="stat-value cyan" id="stat-motoristas">0</div></div>
+    <div class="stat-card"><div class="stat-label">1º Turno</div><div class="stat-value green" id="stat-t1">0</div></div>
+    <div class="stat-card"><div class="stat-label">T. Normal</div><div class="stat-value accent" id="stat-tn">0</div></div>
+    <div class="stat-card"><div class="stat-label">2º Turno</div><div class="stat-value purple" id="stat-t2">0</div></div>
+    <div class="stat-card"><div class="stat-label">3º Turno</div><div class="stat-value amber" id="stat-t3">0</div></div>
+  </div>
+
+  <div class="table-container">
+    <div class="table-toolbar">
+      <div class="search-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        <input class="search-input" id="search-input" type="text"
+          placeholder="Buscar nome, matrícula ou UID..." oninput="renderTable()">
+      </div>
+      <select class="form-select" id="filter-turno" onchange="renderTable()" style="width:130px">
+        <option value="">Todos os turnos</option>
+        <option value="1º Turno">1º Turno</option>
+        <option value="Turno Normal">Turno Normal</option>
+        <option value="2º Turno">2º Turno</option>
+        <option value="3º Turno">3º Turno</option>
+      </select>
+      <select class="form-select" id="filter-status" onchange="renderTable()" style="width:110px">
+        <option value="">Todos</option>
+        <option value="ativo">Ativos</option><option value="inativo">Inativos</option>
+      </select>
+      <select class="form-select" id="filter-tipo" onchange="renderTable()" style="width:130px">
+        <option value="">Todos os tipos</option>
+        <option value="motorista">Motoristas</option>
+        <option value="funcionario">Funcionários</option>
+      </select>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Matrícula</th><th>Nome</th><th>Tipo</th><th>Turno</th>
+            <th>Status</th><th>UID Crachá</th><th>Endereço</th><th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Mapa RH -->
+  <div class="mapa-rh-container">
+    <div class="mapa-rh-header">
+      <div class="mapa-rh-title">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+        </svg>
+        Motoristas — Santa Cruz do Sul / RS
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <div class="mapa-rh-legend">
+          <span><span class="legend-dot" style="background:#22c55e"></span>Ativo</span>
+          <span><span class="legend-dot" style="background:#ef4444"></span>Inativo</span>
+          <span><span class="legend-dot" style="background:#22d3ee"></span>Em rota</span>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="atualizarMapaRH()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+          Atualizar
+        </button>
+      </div>
+    </div>
+    <div class="mapa-status-bar" id="mapa-status-bar">
+      <span>Aguardando geocodificação...</span>
+    </div>
+    <div id="map-rh"></div>
+  </div>
+</div><!-- /page-rh -->
+
+
+<!-- ==================================================
+     PAINEL MOTORISTA
+     ================================================== -->
+<div class="page" id="page-motorista">
+
+  <!-- ETAPA 1: Identificar -->
+  <div id="step-identificar">
+    <div class="driver-flow">
+      <div class="flow-card">
+        <div class="flow-card-header">
+          <div class="flow-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 7a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2"/>
+              <path d="M4 7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2"/>
+              <path d="M12 8v8"/><path d="M8 10v4"/><path d="M16 10v4"/>
+            </svg>
+          </div>
+          <div class="flow-title">Identificação</div>
+          <div class="flow-subtitle">Aproxime seu crachá ou informe a matrícula</div>
+        </div>
+
+        <div class="flow-steps">
+          <div class="flow-step active"><div class="flow-step-num">1</div><span>Identificação</span></div>
+          <div class="flow-step-line"></div>
+          <div class="flow-step"><div class="flow-step-num">2</div><span>Criar Rota</span></div>
+          <div class="flow-step-line"></div>
+          <div class="flow-step"><div class="flow-step-num">3</div><span>Confirmar</span></div>
+        </div>
+
+        <div style="text-align:center;margin-bottom:18px">
+          <div class="nfc-icon" id="id-nfc-icon" style="margin:0 auto 10px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M20 7a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2"/>
+              <path d="M4 7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2"/>
+              <path d="M12 8v8"/><path d="M8 10v4"/><path d="M16 10v4"/>
+            </svg>
+          </div>
+          <div id="id-nfc-hint" style="font-size:13px;color:var(--text2);margin-bottom:14px;padding:0 10px">
+            Aproxime seu crachá para identificação automática
+          </div>
+          <button class="btn btn-primary btn-block" id="btn-id-nfc" onclick="startIDNFC()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 7a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2"/>
+              <path d="M4 7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2"/>
+              <path d="M12 8v8"/><path d="M8 10v4"/><path d="M16 10v4"/>
+            </svg>
+            Ler Crachá NFC
+          </button>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:8px;margin:12px 0">
+          <span style="flex:1;height:1px;background:var(--border)"></span>
+          <span style="font-size:11px;color:var(--text3)">ou matrícula</span>
+          <span style="flex:1;height:1px;background:var(--border)"></span>
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex;gap:7px">
+            <input class="form-input" id="id-matricula" placeholder="Informe a matrícula..."
+              onkeydown="if(event.key==='Enter') identificarMotorista()">
+            <button class="btn btn-ghost" onclick="identificarMotorista()">Buscar</button>
+          </div>
+        </div>
+        <div id="id-nfc-support" style="font-size:11px;color:var(--text3);text-align:center;margin-top:6px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ETAPA 2: Criar Rota -->
+  <div id="step-criar" style="display:none">
+    <div class="driver-flow">
+      <div class="flow-card">
+        <div class="flow-card-header">
+          <div class="flow-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+            </svg>
+          </div>
+          <div class="flow-title">Criar Rota</div>
+          <div class="flow-subtitle">Configure os dados da rota</div>
+        </div>
+
+        <div class="flow-steps">
+          <div class="flow-step done"><div class="flow-step-num">✓</div><span>Identificação</span></div>
+          <div class="flow-step-line done"></div>
+          <div class="flow-step active"><div class="flow-step-num">2</div><span>Criar Rota</span></div>
+          <div class="flow-step-line"></div>
+          <div class="flow-step"><div class="flow-step-num">3</div><span>Confirmar</span></div>
+        </div>
+
+        <div class="motorista-identified" id="motorista-identified-card">
+          <div class="motorista-avatar" id="mot-avatar">?</div>
+          <div>
+            <div class="motorista-info-nome" id="mot-nome">—</div>
+            <div class="motorista-info-meta" id="mot-meta">—</div>
+          </div>
+          <span class="motorista-change" onclick="voltarIdentificacao()">Trocar</span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Número da Rota *</label>
+          <div class="rota-select-group" id="rota-select-group"></div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Placa do Veículo *</label>
+          <input class="form-input" id="cr-placa" placeholder="ABC-1234 ou ABC1D23"
+            maxlength="8" oninput="this.value=this.value.toUpperCase()">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Turno *</label>
+          <div class="filter-pill-group" id="turno-pills">
+            <div class="filter-pill active" onclick="selecionarTurno(this,'1º Turno')">🌅 1º Turno</div>
+            <div class="filter-pill" onclick="selecionarTurno(this,'Turno Normal')">☀️ Turno Normal</div>
+            <div class="filter-pill" onclick="selecionarTurno(this,'2º Turno')">🌇 2º Turno</div>
+            <div class="filter-pill" onclick="selecionarTurno(this,'3º Turno')">🌙 3º Turno</div>
+          </div>
+          <input type="hidden" id="cr-turno" value="1º Turno">
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:18px">
+          <button class="btn btn-ghost" onclick="voltarIdentificacao()">← Voltar</button>
+          <button class="btn btn-primary" style="flex:1" onclick="irParaPrevia()">Pré-visualizar →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ETAPA 3: Confirmar -->
+  <div id="step-confirmar" style="display:none">
+    <div class="driver-flow">
+      <div class="flow-card">
+        <div class="flow-card-header">
+          <div class="flow-icon" style="background:linear-gradient(135deg,var(--green),#059669)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <div class="flow-title">Confirmar Rota</div>
+          <div class="flow-subtitle">Revise antes de iniciar</div>
+        </div>
+
+        <div class="flow-steps">
+          <div class="flow-step done"><div class="flow-step-num">✓</div><span>Identificação</span></div>
+          <div class="flow-step-line done"></div>
+          <div class="flow-step done"><div class="flow-step-num">✓</div><span>Criar Rota</span></div>
+          <div class="flow-step-line done"></div>
+          <div class="flow-step active"><div class="flow-step-num">3</div><span>Confirmar</span></div>
+        </div>
+
+        <div class="preview-grid" id="preview-grid"></div>
+
+        <div class="info-box" style="margin-bottom:18px;font-size:12px">
+          Após iniciar, aproxime os crachás dos alunos. A rota é registrada no <strong>Histórico</strong> ao encerrar.
+        </div>
+
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" onclick="voltarCriarRota()">← Editar</button>
+          <button class="btn btn-success btn-lg" style="flex:1" onclick="iniciarRota()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="5 3 19 12 5 21 5 3"/>
+            </svg>
+            Iniciar Rota
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ETAPA 4: Painel NFC -->
+  <div id="step-painel" style="display:none">
+    <div class="page-header">
+      <div>
+        <div class="page-title">Rota em Andamento</div>
+        <div class="page-subtitle" id="sessao-subtitle">—</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <div id="nfc-support-badge" style="font-size:11px;color:var(--text3)"></div>
+        <button class="btn btn-danger btn-sm" onclick="encerrarRota()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+          </svg>
+          Encerrar
+        </button>
+      </div>
+    </div>
+
+    <div class="session-bar">
+      <div class="session-dot"></div>
+      <div class="sess-item"><span class="sess-label">Motorista</span><span class="sess-value" id="sess-nome">—</span></div>
+      <div class="sess-item"><span class="sess-label">Placa</span><span class="sess-value" id="sess-placa" style="color:var(--accent);font-family:'Courier New',monospace">—</span></div>
+      <div class="sess-item"><span class="sess-label">Rota</span><span class="sess-value" id="sess-rota" style="color:var(--cyan)">—</span></div>
+      <div class="sess-item"><span class="sess-label">Turno</span><span class="sess-value" id="sess-turno">—</span></div>
+      <div class="sess-item" style="margin-left:auto"><span class="sess-label">Início</span><span class="sess-value" id="sess-hora" style="color:var(--text2)">—</span></div>
+    </div>
+
+    <div class="nfc-layout">
+      <!-- NFC -->
+      <div>
+        <div class="nfc-panel">
+          <div class="nfc-status">
+            <div class="nfc-icon" id="nfc-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M20 7a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2"/>
+                <path d="M4 7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2"/>
+                <path d="M12 8v8"/><path d="M8 10v4"/><path d="M16 10v4"/>
+              </svg>
+            </div>
+            <div class="nfc-label" id="nfc-label">Aguardando crachá</div>
+            <div class="nfc-hint" id="nfc-hint">Ative e aproxime o crachá do aluno</div>
+          </div>
+          <div class="uid-display" id="uid-display">UID: —</div>
+          <div class="divider"></div>
+          <button class="btn btn-primary btn-block" id="btn-start-nfc" onclick="startNFC()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 7a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2"/>
+              <path d="M4 7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2"/>
+              <path d="M12 8v8"/><path d="M8 10v4"/><path d="M16 10v4"/>
+            </svg>
+            Ativar Leitura NFC
+          </button>
+          <div class="manual-input-row">
+            <input class="form-input" id="manual-matricula" placeholder="Matrícula ou UID..."
+              onkeydown="if(event.key==='Enter') buscarManual()">
+            <button class="btn btn-ghost" onclick="buscarManual()">Buscar</button>
+          </div>
+          <div class="employee-card" id="employee-card">
+            <div class="emp-avatar" id="emp-avatar">?</div>
+            <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:4px">
+              <div class="emp-name" id="emp-name">—</div>
+              <span class="badge" id="emp-status-badge">—</span>
+            </div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
+              <span class="badge" id="emp-turno-badge">—</span>
+              <span class="badge" id="emp-tipo-badge">—</span>
+            </div>
+            <div class="emp-info">
+              <div class="emp-info-row">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 3H8l-2 4h12l-2-4z"/>
+                </svg>
+                <span id="emp-matricula">—</span>
+              </div>
+              <div class="emp-info-row">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span id="emp-endereco">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="nfc-panel" style="margin-top:12px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+            <span class="section-label" style="margin:0">Leituras da rota</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span id="leituras-count" style="font-size:12px;color:var(--cyan);font-weight:700">0</span>
+              <button class="btn btn-ghost btn-sm" onclick="limparLog()">Limpar</button>
+            </div>
+          </div>
+          <div id="log-list" style="display:flex;flex-direction:column;gap:4px;max-height:200px;overflow-y:auto">
+            <div style="font-size:12px;color:var(--text3);padding:5px 0">Nenhuma leitura ainda.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mapa -->
+      <div>
+        <div class="section-label">Localização do identificado</div>
+        <div class="map-placeholder" id="map-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <span style="font-size:13px">Aproxime um crachá para ver o mapa</span>
+        </div>
+        <div id="map" style="display:none"></div>
+      </div>
+    </div>
+  </div>
+</div><!-- /page-motorista -->
+
+
+<!-- ==================================================
+     HISTÓRICO
+     ================================================== -->
+<div class="page" id="page-historico">
+  <div class="page-header">
+    <div>
+      <div class="page-title">Histórico de Rotas</div>
+      <div class="page-subtitle">Registro de todas as rotas realizadas</div>
+    </div>
+    <button class="btn btn-danger btn-sm" onclick="confirmarLimparHistorico()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+      </svg>
+      Limpar tudo
+    </button>
+  </div>
+
+  <div class="hist-toolbar">
+    <div class="hist-toolbar-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+      </svg>
+      Filtros
+    </div>
+    <div class="hist-filters">
+      <div class="hist-filter-group">
+        <span class="hist-filter-label">📅 Data</span>
+        <div class="date-input-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <input type="date" class="form-input" id="hist-data" style="width:150px" onchange="renderHistorico()">
+        </div>
+      </div>
+      <div class="hist-filter-group">
+        <span class="hist-filter-label">🕐 Turno</span>
+        <select class="form-select" id="hist-turno" onchange="renderHistorico()" style="width:140px">
+          <option value="">Todos</option>
+          <option value="1º Turno">1º Turno</option>
+          <option value="Turno Normal">Turno Normal</option>
+          <option value="2º Turno">2º Turno</option>
+          <option value="3º Turno">3º Turno</option>
+        </select>
+      </div>
+      <div class="hist-filter-group">
+        <span class="hist-filter-label">👤 Motorista</span>
+        <select class="form-select" id="hist-motorista" onchange="renderHistorico()" style="width:170px">
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <div class="hist-filter-group">
+        <span class="hist-filter-label">🛣️ Rota</span>
+        <input class="form-input" id="hist-rota" placeholder="Ex: 01"
+          style="width:80px" oninput="renderHistorico()">
+      </div>
+      <div style="display:flex;align-items:flex-end">
+        <button class="btn btn-ghost btn-sm" onclick="limparFiltrosHist()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          Limpar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="hist-stats">
+    <div class="stat-card"><div class="stat-label">Rotas</div><div class="stat-value accent" id="hstat-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">1º Turno</div><div class="stat-value green" id="hstat-t1">0</div></div>
+    <div class="stat-card"><div class="stat-label">T. Normal</div><div class="stat-value accent" id="hstat-tn">0</div></div>
+    <div class="stat-card"><div class="stat-label">2º Turno</div><div class="stat-value purple" id="hstat-t2">0</div></div>
+    <div class="stat-card"><div class="stat-label">3º Turno</div><div class="stat-value amber" id="hstat-t3">0</div></div>
+    <div class="stat-card"><div class="stat-label">Leituras</div><div class="stat-value cyan" id="hstat-leituras">0</div></div>
+    <div class="stat-card"><div class="stat-label">Duração média</div><div class="stat-value green" id="hstat-duracao">0min</div></div>
+  </div>
+
+  <div class="hist-table-container">
+    <div class="table-scroll">
+      <table style="min-width:700px">
+        <thead>
+          <tr>
+            <th>Data</th><th>Motorista</th><th>Placa</th>
+            <th>Rota</th><th>Turno</th><th>Início</th>
+            <th>Fim</th><th>Duração</th><th>Leituras</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="hist-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div><!-- /page-historico -->
+
+
+<!-- ==================================================
+     MODAL RH
+     ================================================== -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Novo Funcionário</div>
+    <input type="hidden" id="edit-id">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Matrícula *</label>
+        <input class="form-input" id="f-matricula" placeholder="Ex: 0001" maxlength="20">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Turno *</label>
+        <select class="form-select" id="f-turno">
+          <option value="">Selecione...</option>
+          <option value="1º Turno">1º Turno</option>
+          <option value="Turno Normal">Turno Normal</option>
+          <option value="2º Turno">2º Turno</option>
+          <option value="3º Turno">3º Turno</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nome completo *</label>
+      <input class="form-input" id="f-nome" placeholder="Nome do funcionário">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Endereço completo *</label>
+      <input class="form-input" id="f-endereco" placeholder="Rua, número, bairro, cidade, RS">
+    </div>
+    <div class="form-group">
+      <label class="form-label">UID do Crachá NFC <span style="font-weight:400;text-transform:none;color:var(--text3)">(ex: C8:A2:07:B9)</span></label>
+      <div class="uid-wrap">
+        <input class="form-input" id="f-uid" placeholder="Cole o UID ou use Ler NFC">
+        <button class="uid-capture-btn" id="btn-capture-uid" onclick="capturarUID()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 7a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2"/>
+            <path d="M4 7a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2"/>
+            <path d="M12 8v8"/><path d="M8 10v4"/><path d="M16 10v4"/>
+          </svg>
+          Ler NFC
+        </button>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">
+        💡 NFC Tools → LER → "Número de série" → copie e cole aqui.
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Cargo</label>
+      <div class="toggle-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;color:var(--text3)">
+          <rect x="1" y="3" width="15" height="13" rx="2"/>
+          <path d="M16 8h4l3 5v3h-7V8z"/>
+          <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/>
+        </svg>
+        <span class="toggle-label-text" id="label-motorista">Funcionário (não motorista)</span>
+        <label class="switch">
+          <input type="checkbox" id="f-motorista" onchange="atualizarLabelMotorista()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Status</label>
+      <div class="toggle-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:15px;height:15px;color:var(--text3)">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span class="toggle-label-text" id="label-ativo">Funcionário Ativo</span>
+        <label class="switch">
+          <input type="checkbox" id="f-ativo" checked onchange="atualizarLabelAtivo()">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarFuncionario()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <svg id="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toast-msg"></span>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">🚌 <span>TransporteEscolar</span> v5</div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <span>Dev: <strong style="color:var(--text2)">Equipe de TI</strong></span>
+    <span style="color:var(--border)">·</span>
+    <a href="https://www.openstreetmap.org" target="_blank">OpenStreetMap</a>
+    <span style="color:var(--border)">·</span>
+    <span id="footer-clock" style="font-family:'Courier New',monospace;color:var(--text2)"></span>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="db.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
