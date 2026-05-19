@@ -6,7 +6,6 @@
   <title>Sistema de Rotas</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <link rel="stylesheet" href="style.css"/>
-  
 </head>
 <body>
 
@@ -755,6 +754,19 @@
 
 <!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<!-- Proteção de rota — redireciona para login se não autenticado/aprovado -->
+<script>
+(async () => {
+  const _sb = supabase.createClient(
+    'https://yyjisxbiixtopuquroyx.supabase.co',
+    'sb_publishable_gkZDSjfLpOv8PxGHJiq7pA_hYg2t7zE'
+  );
+  const { data: { session } } = await _sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+  const { data: perfil } = await _sb.from('profiles').select('aprovado').eq('id', session.user.id).maybeSingle();
+  if (!perfil || !perfil.aprovado) { window.location.href = 'login.html'; }
+})();
+</script>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="db.js"></script>
