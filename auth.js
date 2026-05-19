@@ -81,11 +81,19 @@ function mostrarTela(id) {
 }
 
 function trocarAba(aba) {
+  /* Reseta todas as abas e painéis */
   document.querySelectorAll('.login-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.login-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.login-panel').forEach(p => {
+    p.classList.remove('active');
+    p.style.display = 'none';
+  });
   limparMsg('msg-auth');
-  document.getElementById(`tab-${aba}`).classList.add('active');
-  document.getElementById(`panel-${aba}`).classList.add('active');
+
+  /* Ativa a aba e painel selecionados */
+  const tab   = document.getElementById(`tab-${aba}`);
+  const panel = document.getElementById(`panel-${aba}`);
+  if (tab)   tab.classList.add('active');
+  if (panel) { panel.classList.add('active'); panel.style.display = 'block'; }
 }
 
 function voltarAuth() {
