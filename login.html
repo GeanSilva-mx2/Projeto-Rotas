@@ -6,7 +6,6 @@
   <title>Sistema de Rotas — Login</title>
   <link rel="stylesheet" href="style.css"/>
   <style>
-    /* ---- Tela de login ---- */
     .login-bg {
       min-height: 100vh;
       background: var(--bg);
@@ -17,134 +16,83 @@
       position: relative;
       overflow: hidden;
     }
-
-    /* Círculos decorativos de fundo */
-    .login-bg::before,
-    .login-bg::after {
-      content: '';
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(80px);
-      opacity: .12;
-      pointer-events: none;
+    .login-bg::before, .login-bg::after {
+      content: ''; position: absolute; border-radius: 50%;
+      filter: blur(90px); opacity: .1; pointer-events: none;
     }
     .login-bg::before {
-      width: 500px; height: 500px;
-      background: var(--accent);
-      top: -100px; left: -100px;
+      width: 520px; height: 520px;
+      background: var(--accent); top: -120px; left: -120px;
     }
     .login-bg::after {
-      width: 400px; height: 400px;
-      background: var(--accent2);
-      bottom: -80px; right: -80px;
+      width: 420px; height: 420px;
+      background: var(--accent2); bottom: -100px; right: -100px;
     }
 
-    /* Card principal */
     .login-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 40px 36px;
-      width: 100%;
-      max-width: 440px;
-      box-shadow: 0 24px 64px rgba(0,0,0,.45);
-      position: relative;
-      z-index: 1;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 22px; padding: 40px 36px;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 28px 72px rgba(0,0,0,.45);
+      position: relative; z-index: 1;
       transition: background .3s;
     }
 
-    /* Logo topo */
     .login-logo {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      margin-bottom: 28px;
+      display: flex; align-items: center; justify-content: center;
+      gap: 13px; margin-bottom: 32px;
     }
     .login-logo-icon {
-      width: 52px; height: 52px;
-      border-radius: 14px;
+      width: 54px; height: 54px; border-radius: 15px;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 8px 24px rgba(79,142,247,.35);
     }
     .login-logo-icon svg { width: 28px; height: 28px; color: #fff; }
-    .login-logo-text { text-align: left; }
-    .login-logo-name { font-size: 20px; font-weight: 800; color: var(--text); }
-    .login-logo-sub  { font-size: 12px; color: var(--text3); margin-top: 1px; }
+    .login-logo-name { font-size: 19px; font-weight: 800; color: var(--text); }
+    .login-logo-sub  { font-size: 12px; color: var(--text3); margin-top: 2px; }
 
     /* Abas */
     .login-tabs {
-      display: flex;
-      gap: 4px;
-      background: var(--bg3);
-      border-radius: 10px;
-      padding: 4px;
-      margin-bottom: 28px;
+      display: flex; gap: 4px;
+      background: var(--bg3); border-radius: 11px;
+      padding: 4px; margin-bottom: 26px;
     }
     .login-tab {
-      flex: 1;
-      padding: 9px;
-      border-radius: 8px;
-      border: none;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all .2s;
-      background: transparent;
-      color: var(--text2);
-      font-family: var(--font);
+      flex: 1; padding: 9px; border-radius: 8px; border: none;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: all .2s; background: transparent;
+      color: var(--text2); font-family: var(--font);
     }
     .login-tab.active {
-      background: var(--bg2);
-      color: var(--text);
-      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+      background: var(--bg2); color: var(--text);
+      box-shadow: 0 2px 8px rgba(0,0,0,.18);
     }
 
-    /* Painéis */
     .login-panel { display: none; }
     .login-panel.active { display: block; }
 
     /* Campos */
-    .login-form-group { margin-bottom: 16px; }
-    .login-label {
-      display: block;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--text2);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: .05em;
+    .lf-group { margin-bottom: 16px; }
+    .lf-label {
+      display: block; font-size: 11px; font-weight: 700;
+      color: var(--text2); margin-bottom: 6px;
+      text-transform: uppercase; letter-spacing: .06em;
     }
-    .login-input {
-      width: 100%;
-      background: var(--bg3);
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 14px;
-      color: var(--text);
-      font-size: 14px;
-      outline: none;
+    .lf-input-wrap { position: relative; }
+    .lf-input {
+      width: 100%; background: var(--bg3);
+      border: 1.5px solid var(--border); border-radius: 11px;
+      padding: 12px 14px 12px 42px; color: var(--text);
+      font-size: 14px; outline: none;
       transition: border-color .2s, box-shadow .2s;
       font-family: var(--font);
     }
-    .login-input:focus {
+    .lf-input:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(79,142,247,.15);
+      box-shadow: 0 0 0 3px rgba(79,142,247,.14);
     }
-    .login-input.error {
-      border-color: var(--red);
-      box-shadow: 0 0 0 3px rgba(239,68,68,.12);
-    }
-    .login-input.success {
-      border-color: var(--green);
-      box-shadow: 0 0 0 3px rgba(34,197,94,.12);
-    }
-
-    /* Input com ícone */
-    .login-input-wrap { position: relative; }
-    .login-input-wrap .login-input { padding-left: 42px; }
-    .login-input-icon {
+    .lf-icon {
       position: absolute; left: 13px; top: 50%;
       transform: translateY(-50%);
       color: var(--text3); width: 16px; height: 16px;
@@ -152,236 +100,256 @@
     }
 
     /* Botão principal */
-    .login-btn {
-      width: 100%;
-      padding: 13px;
-      border-radius: 10px;
-      border: none;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all .2s;
-      font-family: var(--font);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
+    .lf-btn {
+      width: 100%; padding: 13px; border-radius: 11px; border: none;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      transition: all .2s; font-family: var(--font);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
       background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #fff;
-      box-shadow: 0 4px 16px rgba(79,142,247,.35);
-      margin-top: 8px;
+      color: #fff; box-shadow: 0 4px 18px rgba(79,142,247,.32);
+      margin-top: 6px;
     }
-    .login-btn:hover { opacity: .88; transform: translateY(-1px); }
-    .login-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
-    .login-btn svg { width: 17px; height: 17px; }
+    .lf-btn:hover   { opacity: .88; transform: translateY(-1px); }
+    .lf-btn:disabled{ opacity: .5; cursor: not-allowed; transform: none; }
+    .lf-btn svg { width: 16px; height: 16px; }
 
-    /* Mensagens de erro/sucesso inline */
-    .login-msg {
-      padding: 11px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 500;
-      margin-bottom: 16px;
-      display: none;
-      align-items: flex-start;
-      gap: 9px;
-      line-height: 1.5;
+    /* Botão secundário */
+    .lf-btn-ghost {
+      width: 100%; padding: 11px; border-radius: 11px;
+      border: 1px solid var(--border); background: var(--bg3);
+      color: var(--text2); font-size: 14px; font-weight: 600;
+      cursor: pointer; font-family: var(--font);
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      transition: all .2s; margin-top: 8px;
     }
-    .login-msg.show { display: flex; }
-    .login-msg svg { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
-    .login-msg.error   { background: rgba(239,68,68,.1);  border: 1px solid rgba(239,68,68,.25);  color: var(--red);   }
-    .login-msg.success { background: rgba(34,197,94,.1);  border: 1px solid rgba(34,197,94,.25);  color: var(--green); }
-    .login-msg.info    { background: rgba(79,142,247,.1); border: 1px solid rgba(79,142,247,.25); color: var(--accent);}
-    .login-msg.warning { background: rgba(245,158,11,.1); border: 1px solid rgba(245,158,11,.25); color: var(--amber); }
+    .lf-btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
 
-    /* Campo de código OTP */
-    .otp-wrap {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      margin: 20px 0;
+    /* Mensagens */
+    .lf-msg {
+      padding: 12px 14px; border-radius: 10px; font-size: 13px;
+      font-weight: 500; margin-bottom: 16px;
+      display: none; align-items: flex-start; gap: 9px; line-height: 1.55;
     }
-    .otp-input {
-      width: 48px; height: 56px;
-      text-align: center;
-      font-size: 22px;
-      font-weight: 700;
-      background: var(--bg3);
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      color: var(--text);
-      outline: none;
-      transition: border-color .2s, box-shadow .2s;
-      font-family: var(--font);
-    }
-    .otp-input:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(79,142,247,.15);
-    }
-    .otp-input.filled {
-      border-color: var(--accent);
-      background: rgba(79,142,247,.08);
-    }
+    .lf-msg.show { display: flex; }
+    .lf-msg svg  { width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px; }
+    .lf-msg.error  { background:rgba(239,68,68,.1);  border:1px solid rgba(239,68,68,.25);  color:var(--red);   }
+    .lf-msg.success{ background:rgba(34,197,94,.1);  border:1px solid rgba(34,197,94,.25);  color:var(--green); }
+    .lf-msg.info   { background:rgba(79,142,247,.1); border:1px solid rgba(79,142,247,.25); color:var(--accent);}
+    .lf-msg.warning{ background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.25); color:var(--amber); }
 
-    /* Tela de aprovação pendente */
-    .pending-screen {
-      text-align: center;
-      padding: 20px 0;
-    }
-    .pending-icon {
-      width: 72px; height: 72px;
-      border-radius: 50%;
-      background: rgba(245,158,11,.12);
-      border: 2px solid var(--amber);
+    /* Tela de e-mail enviado */
+    .sent-screen { text-align: center; padding: 10px 0; }
+    .sent-icon {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: rgba(79,142,247,.1); border: 2px solid var(--accent);
       display: flex; align-items: center; justify-content: center;
-      margin: 0 auto 20px;
-      animation: pendingPulse 2s ease-in-out infinite;
+      margin: 0 auto 18px;
+      animation: sentPulse 2.5s ease-in-out infinite;
     }
-    .pending-icon svg { width: 36px; height: 36px; color: var(--amber); }
-    @keyframes pendingPulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,.3); }
-      50%      { box-shadow: 0 0 0 14px rgba(245,158,11,0); }
+    .sent-icon svg { width: 34px; height: 34px; color: var(--accent); }
+    @keyframes sentPulse {
+      0%,100%{ box-shadow: 0 0 0 0 rgba(79,142,247,.3); }
+      50%    { box-shadow: 0 0 0 14px rgba(79,142,247,0); }
     }
-    .pending-title { font-size: 20px; font-weight: 700; margin-bottom: 10px; }
-    .pending-sub   { font-size: 14px; color: var(--text2); line-height: 1.6; margin-bottom: 20px; }
-    .pending-info  {
+    .sent-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .sent-sub   { font-size: 13px; color: var(--text2); line-height: 1.65; margin-bottom: 20px; }
+    .sent-email-badge {
+      background: rgba(79,142,247,.1); border: 1px solid rgba(79,142,247,.25);
+      border-radius: 8px; padding: 10px 14px;
+      font-size: 14px; font-weight: 700; color: var(--accent);
+      margin-bottom: 20px; word-break: break-all;
+    }
+    .sent-steps {
       background: var(--bg3); border: 1px solid var(--border);
-      border-radius: 10px; padding: 14px;
-      font-size: 13px; color: var(--text2); line-height: 1.7;
-      text-align: left;
+      border-radius: 10px; padding: 14px 16px;
+      text-align: left; margin-bottom: 18px;
     }
-    .pending-info strong { color: var(--text); }
+    .sent-step {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 13px; color: var(--text2); padding: 5px 0;
+    }
+    .sent-step-num {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      background: var(--accent); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; margin-top: 1px;
+    }
 
-    /* Loading spinner inline */
-    .spin { animation: spin 1s linear infinite; }
-    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+    /* Tela pendente */
+    .pending-icon {
+      width: 68px; height: 68px; border-radius: 50%;
+      background: rgba(245,158,11,.1); border: 2px solid var(--amber);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+      animation: pendPulse 2s ease-in-out infinite;
+    }
+    .pending-icon svg { width: 32px; height: 32px; color: var(--amber); }
+    @keyframes pendPulse {
+      0%,100%{ box-shadow: 0 0 0 0 rgba(245,158,11,.3); }
+      50%    { box-shadow: 0 0 0 13px rgba(245,158,11,0); }
+    }
 
-    /* Separador */
-    .login-divider {
+    /* Força senha */
+    .pw-strength { height: 3px; border-radius: 3px; background: var(--bg4); margin-top: 6px; }
+    .pw-strength-bar { height: 100%; border-radius: 3px; transition: width .3s, background .3s; width: 0%; }
+    .pw-label { font-size: 11px; color: var(--text3); margin-top: 3px; text-align: right; }
+
+    /* Divisor */
+    .lf-divider {
       display: flex; align-items: center; gap: 10px;
-      margin: 18px 0; color: var(--text3); font-size: 12px;
+      margin: 16px 0; color: var(--text3); font-size: 12px;
     }
-    .login-divider::before,
-    .login-divider::after {
+    .lf-divider::before, .lf-divider::after {
       content: ''; flex: 1; height: 1px; background: var(--border);
     }
 
-    /* Link de ação */
-    .login-link {
-      color: var(--accent); cursor: pointer;
-      font-size: 13px; text-decoration: none;
-      font-weight: 600;
+    .lf-link {
+      color: var(--accent); cursor: pointer; font-size: 13px;
+      font-weight: 600; text-decoration: none;
     }
-    .login-link:hover { text-decoration: underline; }
+    .lf-link:hover { text-decoration: underline; }
 
-    /* Força senha */
-    .password-strength {
-      height: 3px; border-radius: 3px;
-      background: var(--bg4); margin-top: 6px; overflow: hidden;
+    /* Theme btn */
+    .theme-btn {
+      position: fixed; top: 16px; right: 16px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 6px 13px;
+      font-size: 12px; color: var(--text2); cursor: pointer;
+      display: flex; align-items: center; gap: 6px;
+      transition: all .2s; z-index: 50; font-family: var(--font);
     }
-    .password-strength-bar {
-      height: 100%; border-radius: 3px;
-      transition: width .3s, background .3s;
-      width: 0%;
-    }
-    .strength-label {
-      font-size: 11px; color: var(--text3); margin-top: 4px; text-align: right;
-    }
+    .theme-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .theme-btn svg { width: 14px; height: 14px; }
 
-    /* Botão filtro admin */
-    .admin-filter-btn {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--text2);
-      border-radius: 8px;
-      padding: 6px 13px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 600;
-      font-family: var(--font);
-      transition: all .2s;
-    }
-    .admin-filter-btn:hover  { border-color: var(--accent); color: var(--accent); }
-    .admin-filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .spin { animation: spin 1s linear infinite; }
+    @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 
-    /* Card de usuário no admin */
+    /* ---- PAINEL ADMIN ---- */
+    #admin-overlay {
+      display: none; position: fixed; inset: 0;
+      background: var(--bg); z-index: 999; overflow-y: auto;
+    }
+    .admin-wrap { max-width: 920px; margin: 0 auto; padding: 24px 20px; }
+    .admin-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .admin-header-left { display: flex; align-items: center; gap: 13px; }
+    .admin-icon {
+      width: 46px; height: 46px; border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex; align-items: center; justify-content: center;
+    }
+    .admin-icon svg { width: 24px; height: 24px; color: #fff; }
+    .admin-title { font-size: 19px; font-weight: 800; color: var(--text); }
+    .admin-sub   { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+    .admin-stats {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px; margin-bottom: 20px;
+    }
+    .admin-stat-card {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px;
+    }
+    .admin-stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .admin-stat-val   { font-size: 26px; font-weight: 700; }
+
+    .admin-filter-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+    }
+    .admin-filter-pills { display: flex; gap: 5px; flex-wrap: wrap; }
+    .admin-pill {
+      padding: 5px 13px; border-radius: 20px; font-size: 12px; font-weight: 600;
+      cursor: pointer; border: 1px solid var(--border);
+      background: var(--bg3); color: var(--text2);
+      transition: all .2s; font-family: var(--font);
+    }
+    .admin-pill:hover  { border-color: var(--accent); color: var(--accent); }
+    .admin-pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
     .admin-user-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 18px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      flex-wrap: wrap;
-      transition: background .2s;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 15px 16px;
+      display: flex; align-items: center; gap: 12px;
+      flex-wrap: wrap; transition: background .15s; margin-bottom: 8px;
     }
     .admin-user-card:hover { background: var(--bg3); }
     .admin-avatar {
-      width: 44px; height: 44px;
-      border-radius: 50%; flex-shrink: 0;
+      width: 42px; height: 42px; border-radius: 50%; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      font-size: 16px; font-weight: 700; color: #fff;
+      font-size: 15px; font-weight: 700; color: #fff;
     }
-    .admin-user-info { flex: 1; min-width: 160px; }
-    .admin-user-nome  { font-size: 15px; font-weight: 700; color: var(--text); }
+    .admin-user-info { flex: 1; min-width: 150px; }
+    .admin-user-nome  { font-size: 14px; font-weight: 700; color: var(--text); }
     .admin-user-email { font-size: 12px; color: var(--text3); margin-top: 2px; }
-    .admin-user-data  { font-size: 11px; color: var(--text3); margin-top: 3px; }
+    .admin-user-data  { font-size: 11px; color: var(--text3); margin-top: 2px; }
 
-    .admin-status-badge {
-      padding: 4px 11px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      flex-shrink: 0;
+    .status-badge {
+      padding: 3px 10px; border-radius: 20px;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
     }
-    .status-pendente  { background: rgba(245,158,11,.15); color: var(--amber); }
-    .status-aprovado  { background: rgba(34,197,94,.15);  color: var(--green); }
-    .status-rejeitado { background: rgba(239,68,68,.15);  color: var(--red);   }
+    .sb-pendente  { background: rgba(245,158,11,.15); color: var(--amber); }
+    .sb-aprovado  { background: rgba(34,197,94,.15);  color: var(--green); }
+    .sb-rejeitado { background: rgba(239,68,68,.15);  color: var(--red);   }
 
-    .admin-actions { display: flex; gap: 7px; flex-shrink: 0; }
+    .admin-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; }
+    .adm-btn {
+      padding: 6px 13px; border-radius: 8px; border: none;
+      font-size: 12px; font-weight: 700; cursor: pointer;
+      font-family: var(--font); transition: all .2s;
+      display: flex; align-items: center; gap: 5px;
+    }
+    .adm-btn-aprovar  { background: rgba(34,197,94,.12);  color: var(--green); border: 1px solid rgba(34,197,94,.25); }
+    .adm-btn-aprovar:hover  { background: rgba(34,197,94,.25); }
+    .adm-btn-rejeitar { background: rgba(239,68,68,.12);  color: var(--red);   border: 1px solid rgba(239,68,68,.25); }
+    .adm-btn-rejeitar:hover { background: rgba(239,68,68,.25); }
+    .adm-btn-excluir  { background: rgba(100,116,139,.1); color: var(--text3); border: 1px solid var(--border); }
+    .adm-btn-excluir:hover  { background: rgba(239,68,68,.12); color: var(--red); }
 
     /* Modal senha admin */
-    .admin-senha-overlay {
+    .admin-pw-overlay {
       display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,.7); z-index: 1100;
-      align-items: center; justify-content: center;
-      padding: 20px;
+      background: rgba(0,0,0,.65); z-index: 1100;
+      align-items: center; justify-content: center; padding: 20px;
     }
-    .admin-senha-overlay.open { display: flex; }
-    .admin-senha-card {
+    .admin-pw-overlay.open { display: flex; }
+    .admin-pw-card {
       background: var(--bg2); border: 1px solid var(--border);
       border-radius: 16px; padding: 28px;
-      width: 100%; max-width: 380px;
+      width: 100%; max-width: 370px;
       box-shadow: 0 24px 64px rgba(0,0,0,.5);
     }
-      position: absolute; top: 16px; right: 16px;
-      background: var(--bg3); border: 1px solid var(--border);
-      border-radius: 20px; padding: 6px 12px;
-      font-size: 12px; color: var(--text2); cursor: pointer;
-      display: flex; align-items: center; gap: 6px;
-      transition: all .2s; z-index: 10;
-      font-family: var(--font);
+
+    /* Botão admin flutuante */
+    #btn-admin-float {
+      display: none; position: fixed; bottom: 20px; left: 20px;
+      background: var(--bg2); border: 1px solid var(--border);
+      color: var(--text3); border-radius: 10px; padding: 8px 14px;
+      cursor: pointer; font-size: 12px; font-family: var(--font);
+      align-items: center; gap: 6px;
+      box-shadow: 0 4px 16px var(--shadow); z-index: 100; transition: all .2s;
     }
-    .login-theme-btn:hover { border-color: var(--accent); color: var(--accent); }
-    .login-theme-btn svg { width: 14px; height: 14px; }
+    #btn-admin-float:hover { border-color: var(--accent); color: var(--accent); }
+    #btn-admin-float svg { width: 14px; height: 14px; }
   </style>
 </head>
 <body>
 
+<!-- Toggle tema -->
+<button class="theme-btn" onclick="toggleTheme()">
+  <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="5"/>
+    <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+    <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+  </svg>
+  <span id="theme-label">Claro</span>
+</button>
+
 <div class="login-bg">
-
-  <!-- Toggle tema -->
-  <button class="login-theme-btn" onclick="toggleTheme()">
-    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="5"/>
-      <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
-      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-      <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
-    </svg>
-    <span id="theme-label">Claro</span>
-  </button>
-
   <div class="login-card">
 
     <!-- Logo -->
@@ -394,339 +362,264 @@
           <circle cx="18.5" cy="18.5" r="2.5"/>
         </svg>
       </div>
-      <div class="login-logo-text">
+      <div>
         <div class="login-logo-name">Sistema de Rotas</div>
         <div class="login-logo-sub">Rotas Empresariais · Gean Diehl da Silva</div>
       </div>
     </div>
 
-    <!-- =============================================
-         TELA 1: LOGIN / CADASTRO
-         ============================================= -->
+    <!-- ==== TELA AUTH ==== -->
     <div id="screen-auth">
-      <!-- Abas -->
       <div class="login-tabs">
-        <button class="login-tab active" id="tab-login" onclick="mostrarAba('login')">Entrar</button>
-        <button class="login-tab" id="tab-cadastro" onclick="mostrarAba('cadastro')">Criar conta</button>
+        <button class="login-tab active" id="tab-entrar"   onclick="trocarAba('entrar')">Entrar</button>
+        <button class="login-tab"        id="tab-cadastro" onclick="trocarAba('cadastro')">Criar conta</button>
       </div>
 
-      <!-- Mensagem de feedback -->
-      <div class="login-msg" id="auth-msg">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="auth-msg-icon"></svg>
-        <span id="auth-msg-text"></span>
+      <div class="lf-msg" id="msg-auth">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="msg-auth-icon"></svg>
+        <span id="msg-auth-text"></span>
       </div>
 
-      <!-- PAINEL LOGIN -->
-      <div class="login-panel active" id="panel-login">
-        <div class="login-form-group">
-          <label class="login-label">E-mail</label>
-          <div class="login-input-wrap">
-            <svg class="login-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <!-- ENTRAR via e-mail (magic link) -->
+      <div class="login-panel active" id="panel-entrar">
+        <div class="lf-group">
+          <label class="lf-label">Seu e-mail</label>
+          <div class="lf-input-wrap">
+            <svg class="lf-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
               <polyline points="22,6 12,13 2,6"/>
             </svg>
-            <input class="login-input" type="email" id="login-email"
+            <input class="lf-input" type="email" id="entrar-email"
               placeholder="seu@email.com"
-              onkeydown="if(event.key==='Enter') document.getElementById('login-senha').focus()">
+              onkeydown="if(event.key==='Enter') enviarMagicLink()">
           </div>
         </div>
-        <div class="login-form-group">
-          <label class="login-label">Senha</label>
-          <div class="login-input-wrap">
-            <svg class="login-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            <input class="login-input" type="password" id="login-senha"
-              placeholder="••••••••"
-              onkeydown="if(event.key==='Enter') fazerLogin()">
-          </div>
-        </div>
-        <div style="text-align:right;margin-bottom:16px">
-          <a class="login-link" onclick="mostrarEsqueciSenha()">Esqueci minha senha</a>
-        </div>
-        <button class="login-btn" id="btn-login" onclick="fazerLogin()">
+        <button class="lf-btn" id="btn-magic" onclick="enviarMagicLink()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-            <polyline points="10 17 15 12 10 7"/>
-            <line x1="15" y1="12" x2="3" y2="12"/>
+            <polyline points="22 2 15 22 11 13 2 9 22 2"/>
           </svg>
-          Entrar no sistema
+          Enviar link de acesso
         </button>
+        <p style="font-size:12px;color:var(--text3);text-align:center;margin-top:12px;line-height:1.6">
+          Você receberá um link no e-mail.<br>Clique nele e o acesso será automático.
+        </p>
       </div>
 
-      <!-- PAINEL CADASTRO -->
+      <!-- CRIAR CONTA -->
       <div class="login-panel" id="panel-cadastro">
-        <div class="login-form-group">
-          <label class="login-label">Nome completo</label>
-          <div class="login-input-wrap">
-            <svg class="login-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="lf-group">
+          <label class="lf-label">Nome completo</label>
+          <div class="lf-input-wrap">
+            <svg class="lf-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
               <circle cx="12" cy="7" r="4"/>
             </svg>
-            <input class="login-input" type="text" id="cad-nome" placeholder="Seu nome completo">
+            <input class="lf-input" type="text" id="cad-nome" placeholder="Seu nome completo">
           </div>
         </div>
-        <div class="login-form-group">
-          <label class="login-label">E-mail</label>
-          <div class="login-input-wrap">
-            <svg class="login-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div class="lf-group">
+          <label class="lf-label">E-mail</label>
+          <div class="lf-input-wrap">
+            <svg class="lf-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
               <polyline points="22,6 12,13 2,6"/>
             </svg>
-            <input class="login-input" type="email" id="cad-email" placeholder="seu@email.com">
+            <input class="lf-input" type="email" id="cad-email" placeholder="seu@email.com">
           </div>
         </div>
-        <div class="login-form-group">
-          <label class="login-label">Senha</label>
-          <div class="login-input-wrap">
-            <svg class="login-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            <input class="login-input" type="password" id="cad-senha"
-              placeholder="Mínimo 6 caracteres"
-              oninput="verificarForcaSenha()">
-          </div>
-          <div class="password-strength">
-            <div class="password-strength-bar" id="strength-bar"></div>
-          </div>
-          <div class="strength-label" id="strength-label"></div>
-        </div>
-        <div class="login-form-group">
-          <label class="login-label">Confirmar senha</label>
-          <div class="login-input-wrap">
-            <svg class="login-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="11" width="18" height="11" rx="2"/>
-              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            <input class="login-input" type="password" id="cad-confirma"
-              placeholder="Repita a senha"
-              oninput="verificarConfirmacao()">
-          </div>
-        </div>
-        <button class="login-btn" id="btn-cadastro" onclick="fazerCadastro()">
+        <button class="lf-btn" id="btn-cadastro" onclick="fazerCadastro()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
             <circle cx="8.5" cy="7" r="4"/>
             <line x1="20" y1="8" x2="20" y2="14"/>
             <line x1="23" y1="11" x2="17" y2="11"/>
           </svg>
-          Criar conta
+          Solicitar acesso
         </button>
-      </div>
-
-      <!-- PAINEL ESQUECI SENHA -->
-      <div class="login-panel" id="panel-esqueci">
-        <p style="font-size:13px;color:var(--text2);margin-bottom:16px">
-          Informe seu e-mail e enviaremos um link para redefinir sua senha.
+        <p style="font-size:12px;color:var(--text3);text-align:center;margin-top:12px;line-height:1.6">
+          Após o cadastro, um administrador<br>aprovará seu acesso ao sistema.
         </p>
-        <div class="login-form-group">
-          <label class="login-label">E-mail</label>
-          <div class="login-input-wrap">
-            <svg class="login-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
-              <polyline points="22,6 12,13 2,6"/>
-            </svg>
-            <input class="login-input" type="email" id="esqueci-email" placeholder="seu@email.com">
-          </div>
-        </div>
-        <button class="login-btn" onclick="enviarResetSenha()">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="22 2 15 22 11 13 2 9 22 2"/>
-          </svg>
-          Enviar link de redefinição
-        </button>
-        <div class="login-divider">ou</div>
-        <div style="text-align:center">
-          <a class="login-link" onclick="mostrarAba('login')">← Voltar para o login</a>
-        </div>
       </div>
     </div>
 
-    <!-- =============================================
-         TELA 2: CONFIRMAÇÃO DE E-MAIL (OTP)
-         ============================================= -->
-    <div id="screen-otp" style="display:none">
-      <div style="text-align:center;margin-bottom:24px">
-        <div style="width:64px;height:64px;border-radius:50%;background:rgba(79,142,247,.12);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 14px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="width:30px;height:30px">
+    <!-- ==== TELA LINK ENVIADO ==== -->
+    <div id="screen-sent" style="display:none">
+      <div class="sent-screen">
+        <div class="sent-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
             <polyline points="22,6 12,13 2,6"/>
           </svg>
         </div>
-        <div style="font-size:18px;font-weight:700;margin-bottom:6px">Confirme seu e-mail</div>
-        <div style="font-size:13px;color:var(--text2)">
-          Enviamos um código de 6 dígitos para<br>
-          <strong id="otp-email-display" style="color:var(--accent)"></strong>
+        <div class="sent-title" id="sent-title">Link enviado!</div>
+        <div class="sent-sub" id="sent-sub">Verifique seu e-mail</div>
+        <div class="sent-email-badge" id="sent-email"></div>
+        <div class="sent-steps" id="sent-steps">
+          <div class="sent-step">
+            <div class="sent-step-num">1</div>
+            <span>Abra seu e-mail (verifique também o <strong>Spam</strong>)</span>
+          </div>
+          <div class="sent-step">
+            <div class="sent-step-num">2</div>
+            <span>Clique no link <strong>"Entrar no Sistema de Rotas"</strong></span>
+          </div>
+          <div class="sent-step">
+            <div class="sent-step-num">3</div>
+            <span>Você será redirecionado automaticamente</span>
+          </div>
         </div>
-      </div>
-
-      <div class="login-msg" id="otp-msg">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="otp-msg-icon"></svg>
-        <span id="otp-msg-text"></span>
-      </div>
-
-      <!-- Campos OTP -->
-      <div class="otp-wrap">
-        <input class="otp-input" type="text" maxlength="1" id="otp-0" oninput="otpInput(0)" onkeydown="otpKeydown(event,0)">
-        <input class="otp-input" type="text" maxlength="1" id="otp-1" oninput="otpInput(1)" onkeydown="otpKeydown(event,1)">
-        <input class="otp-input" type="text" maxlength="1" id="otp-2" oninput="otpInput(2)" onkeydown="otpKeydown(event,2)">
-        <input class="otp-input" type="text" maxlength="1" id="otp-3" oninput="otpInput(3)" onkeydown="otpKeydown(event,3)">
-        <input class="otp-input" type="text" maxlength="1" id="otp-4" oninput="otpInput(4)" onkeydown="otpKeydown(event,4)">
-        <input class="otp-input" type="text" maxlength="1" id="otp-5" oninput="otpInput(5)" onkeydown="otpKeydown(event,5)">
-      </div>
-
-      <button class="login-btn" id="btn-verificar" onclick="verificarOTP()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="20 6 9 17 4 12"/>
-        </svg>
-        Verificar código
-      </button>
-
-      <div class="login-divider">ou</div>
-      <div style="text-align:center;font-size:13px;color:var(--text2)">
-        Não recebeu?
-        <a class="login-link" onclick="reenviarOTP()" id="btn-reenviar">Reenviar código</a>
-        <span id="reenviar-timer" style="color:var(--text3)"></span>
+        <button class="lf-btn-ghost" onclick="voltarAuth()">
+          ← Usar outro e-mail
+        </button>
       </div>
     </div>
 
-    <!-- =============================================
-         TELA 3: APROVAÇÃO PENDENTE
-         ============================================= -->
+    <!-- ==== TELA PENDENTE ==== -->
     <div id="screen-pending" style="display:none">
-      <div class="pending-screen">
+      <div style="text-align:center;padding:10px 0">
         <div class="pending-icon">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
             <polyline points="12 6 12 12 16 14"/>
           </svg>
         </div>
-        <div class="pending-title">Aguardando aprovação</div>
-        <div class="pending-sub">
-          Seu e-mail foi confirmado com sucesso!<br>
-          Aguarde a aprovação do administrador para acessar o sistema.
+        <div style="font-size:19px;font-weight:700;margin-bottom:8px">Aguardando aprovação</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:18px">
+          Sua solicitação foi recebida.<br>
+          Um administrador aprovará seu acesso em breve.
         </div>
-        <div class="pending-info">
-          <strong>📧 E-mail cadastrado:</strong> <span id="pending-email"></span><br>
-          <strong>👤 Nome:</strong> <span id="pending-nome"></span><br>
-          <strong>📋 Status:</strong> <span style="color:var(--amber)">⏳ Aprovação pendente</span><br><br>
-          O administrador será notificado e aprovará seu acesso em breve.
-          Após a aprovação, você receberá um e-mail de confirmação.
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:13px;font-size:13px;color:var(--text2);line-height:1.8;text-align:left;margin-bottom:16px">
+          📧 <strong style="color:var(--text)">E-mail:</strong> <span id="pending-email"></span><br>
+          👤 <strong style="color:var(--text)">Nome:</strong> <span id="pending-nome"></span><br>
+          📋 <strong style="color:var(--text)">Status:</strong> <span style="color:var(--amber)">⏳ Pendente</span>
         </div>
-        <div class="login-divider"></div>
-        <button class="login-btn" onclick="verificarAprovacao()" style="margin-top:0;background:var(--bg3);color:var(--text2);box-shadow:none;border:1px solid var(--border)">
+        <button class="lf-btn" onclick="verificarAprovacao()" style="margin-bottom:8px">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="23 4 23 10 17 10"/>
             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
           </svg>
-          Verificar se fui aprovado
+          Verificar aprovação
         </button>
-        <div style="margin-top:12px;text-align:center">
-          <a class="login-link" onclick="fazerLogout()">Sair / Trocar conta</a>
-        </div>
+        <button class="lf-btn-ghost" onclick="fazerLogout()">Sair / Trocar conta</button>
       </div>
     </div>
 
   </div><!-- /login-card -->
 </div><!-- /login-bg -->
 
-<!-- ====================================================
-     PAINEL ADMIN — tela separada sobreposta
-     ==================================================== -->
-<div id="admin-overlay" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:999;overflow-y:auto">
+<!-- ==================================================
+     PAINEL ADMIN
+     ================================================== -->
+<div id="admin-overlay">
+  <div class="admin-wrap">
 
-  <div style="max-width:900px;margin:0 auto;padding:24px 20px">
-
-    <!-- Header admin -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:12px">
-      <div style="display:flex;align-items:center;gap:14px">
-        <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center">
-          <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:24px;height:24px">
+    <div class="admin-header">
+      <div class="admin-header-left">
+        <div class="admin-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
         </div>
         <div>
-          <div style="font-size:20px;font-weight:800;color:var(--text)">Painel Administrativo</div>
-          <div style="font-size:12px;color:var(--text3)">Sistema de Rotas Empresariais</div>
+          <div class="admin-title">Painel Administrativo</div>
+          <div class="admin-sub">Sistema de Rotas · <span id="admin-logado-email" style="color:var(--accent)"></span></div>
         </div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <span id="admin-user-email" style="font-size:12px;color:var(--text3)"></span>
-        <button onclick="fecharAdmin()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:7px 14px;cursor:pointer;font-size:13px;font-family:var(--font);display:flex;align-items:center;gap:6px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16 17 21 12 16 7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
-          Sair do admin
-        </button>
-      </div>
-    </div>
-
-    <!-- Stats rápidos -->
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:24px">
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px">
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Total usuários</div>
-        <div style="font-size:26px;font-weight:700;color:var(--accent)" id="admin-stat-total">—</div>
-      </div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px">
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Aprovados</div>
-        <div style="font-size:26px;font-weight:700;color:var(--green)" id="admin-stat-aprovados">—</div>
-      </div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px">
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Pendentes</div>
-        <div style="font-size:26px;font-weight:700;color:var(--amber)" id="admin-stat-pendentes">—</div>
-      </div>
-      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px">
-        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Rejeitados</div>
-        <div style="font-size:26px;font-weight:700;color:var(--red)" id="admin-stat-rejeitados">—</div>
-      </div>
-    </div>
-
-    <!-- Filtro de status -->
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
-      <div style="font-size:15px;font-weight:700;color:var(--text)">Usuários Cadastrados</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="admin-filter-btn active" onclick="filtrarAdmin('todos',this)">Todos</button>
-        <button class="admin-filter-btn" onclick="filtrarAdmin('pendente',this)">⏳ Pendentes</button>
-        <button class="admin-filter-btn" onclick="filtrarAdmin('aprovado',this)">✅ Aprovados</button>
-        <button class="admin-filter-btn" onclick="filtrarAdmin('rejeitado',this)">❌ Rejeitados</button>
-        <button onclick="carregarAdmin()" style="background:var(--bg3);border:1px solid var(--border);color:var(--text2);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:12px;font-family:var(--font);display:flex;align-items:center;gap:5px">
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button onclick="carregarAdmin()" class="lf-btn-ghost" style="width:auto;padding:7px 14px;font-size:12px;margin:0">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px">
             <polyline points="23 4 23 10 17 10"/>
             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
           </svg>
           Atualizar
         </button>
+        <button onclick="fecharAdmin()" class="lf-btn-ghost" style="width:auto;padding:7px 14px;font-size:12px;margin:0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          Fechar
+        </button>
       </div>
     </div>
 
-    <!-- Lista de usuários -->
-    <div id="admin-lista" style="display:flex;flex-direction:column;gap:8px">
+    <div class="admin-stats">
+      <div class="admin-stat-card"><div class="admin-stat-label">Total</div><div class="admin-stat-val" id="as-total" style="color:var(--accent)">—</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Aprovados</div><div class="admin-stat-val" id="as-aprovados" style="color:var(--green)">—</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Pendentes</div><div class="admin-stat-val" id="as-pendentes" style="color:var(--amber)">—</div></div>
+      <div class="admin-stat-card"><div class="admin-stat-label">Rejeitados</div><div class="admin-stat-val" id="as-rejeitados" style="color:var(--red)">—</div></div>
+    </div>
+
+    <div class="admin-filter-row">
+      <div style="font-size:15px;font-weight:700;color:var(--text)">Usuários</div>
+      <div class="admin-filter-pills">
+        <button class="admin-pill active" onclick="filtrarAdmin('todos',this)">Todos</button>
+        <button class="admin-pill" onclick="filtrarAdmin('pendente',this)">⏳ Pendentes</button>
+        <button class="admin-pill" onclick="filtrarAdmin('aprovado',this)">✅ Aprovados</button>
+        <button class="admin-pill" onclick="filtrarAdmin('rejeitado',this)">❌ Rejeitados</button>
+      </div>
+    </div>
+
+    <div id="admin-lista">
       <div style="text-align:center;padding:40px;color:var(--text3)">Carregando...</div>
     </div>
 
   </div>
 </div>
 
-<!-- Botão flutuante para acessar admin (discreto, canto inferior esquerdo) -->
-<button id="btn-admin-acesso" onclick="abrirAdmin()"
-  style="display:none;position:fixed;bottom:20px;left:20px;
-    background:var(--bg2);border:1px solid var(--border);
-    color:var(--text3);border-radius:10px;padding:8px 14px;
-    cursor:pointer;font-size:12px;font-family:var(--font);
-    display:flex;align-items:center;gap:6px;
-    box-shadow:0 4px 16px var(--shadow);z-index:100;
-    transition:all .2s">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px">
+<!-- Modal senha admin -->
+<div class="admin-pw-overlay" id="admin-pw-overlay">
+  <div class="admin-pw-card">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
+      <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" style="width:19px;height:19px">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:700;color:var(--text)">Acesso Administrativo</div>
+        <div style="font-size:12px;color:var(--text3)">Confirme sua senha</div>
+      </div>
+    </div>
+    <div class="lf-msg" id="msg-admin-pw">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="msg-admin-pw-icon"></svg>
+      <span id="msg-admin-pw-text"></span>
+    </div>
+    <div class="lf-group">
+      <label class="lf-label">Senha</label>
+      <div class="lf-input-wrap">
+        <svg class="lf-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <input class="lf-input" type="password" id="admin-pw-input"
+          placeholder="••••••••"
+          onkeydown="if(event.key==='Enter') confirmarAdminPw()">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button onclick="fecharAdminPw()" class="lf-btn-ghost" style="width:auto;flex:1;margin:0">Cancelar</button>
+      <button id="btn-admin-pw-ok" onclick="confirmarAdminPw()"
+        style="flex:1;padding:12px;border-radius:10px;border:none;
+          background:linear-gradient(135deg,var(--accent),var(--accent2));
+          color:#fff;font-size:14px;font-weight:700;cursor:pointer;
+          font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:6px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Entrar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Botão admin flutuante -->
+<button id="btn-admin-float" onclick="abrirAdmin()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
   </svg>
   Admin
 </button>
 
-<!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="auth.js"></script>
 </body>
